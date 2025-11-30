@@ -95,11 +95,20 @@ body {
     background-color: #ffffff;
     transition: all 0.2s ease;
     text-align: center;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .sudoku-cell:focus {
     outline: none;
     background-color: #dcdcdc;
+}
+
+.sudoku-cell.active {
+    background-color: #e6f7ff;
+    box-shadow: inset 0 0 0 2px #70a1ff;
 }
 
 .sudoku-cell:nth-child(3n) { border-right: 2px solid #222; }
@@ -172,6 +181,47 @@ button:disabled {
     box-shadow: 0 5px 8px rgba(255, 107, 107, 0.4);
 }
 
+/* Виртуальная клавиатура */
+.virtual-keyboard {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 5px;
+}
+
+.number-btn {
+    background: linear-gradient(135deg, #555 0%, #444 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 5px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: auto;
+    flex: none;
+    max-width: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.number-btn:hover {
+    background: linear-gradient(135deg, #666 0%, #555 100%);
+    transform: translateY(-1px);
+}
+
+.number-btn:active {
+    transform: translateY(1px);
+}
+
+.clear-cell-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    grid-column: span 2;
+}
+
 .falling-numbers {
     position: absolute;
     top: 0;
@@ -198,7 +248,7 @@ button:disabled {
 
 /* Подпись */
 .signature {
-    margin-top: 15px;
+    margin-top: 10px;
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.25);
     font-weight: 300;
@@ -312,6 +362,16 @@ button:disabled {
     .sudoku-platform {
         padding: 8px;
     }
+    
+    .virtual-keyboard {
+        max-width: 280px;
+        gap: 6px;
+    }
+    
+    .number-btn {
+        padding: 10px 3px;
+        font-size: 1rem;
+    }
 }
 
 /* Адаптивность для модального окна */
@@ -363,10 +423,35 @@ button:disabled {
     }
     
     .signature {
-        margin-top: 10px;
+        margin-top: 8px;
     }
     
     .modal-content {
         transform: translate(-50%, -50%) scale(0.9);
+    }
+    
+    .virtual-keyboard {
+        margin-top: 3px;
+    }
+}
+
+/* Скрываем виртуальную клавиатуру на десктопе */
+@media (min-width: 768px) {
+    .virtual-keyboard {
+        display: none;
+    }
+}
+
+/* Для мобильных устройств - скрываем стандартную клавиатуру */
+@media (max-width: 767px) {
+    .sudoku-cell {
+        caret-color: transparent;
+    }
+    
+    .sudoku-cell:focus {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 }
