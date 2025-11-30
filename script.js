@@ -5,11 +5,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const fallingNumbers = document.getElementById('fallingNumbers');
     const modal = document.getElementById('modal');
     const closeModal = document.getElementById('closeModal');
+    const virtualKeyboard = document.getElementById('virtualKeyboard');
 
     // URL твоего бэкенда на PythonAnywhere
     const BACKEND_URL = 'https://almorozov.pythonanywhere.com';
     
     let isSolving = false;
+    let activeCell = null;
 
     // Функции для модального окна
     function showModal() {
@@ -47,12 +49,18 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.className = 'sudoku-cell';
             cell.dataset.index = i;
             
+            // Обработчик клика для выбора клетки
+            cell.addEventListener('click', function() {
+                setActiveCell(this);
+            });
+            
             cell.addEventListener('input', e => {
                 if (!/^[1-9]?$/.test(e.target.value)) {
                     e.target.value = '';
                 } else {
                     e.target.classList.add('user-input');
                 }
+                setActiveCell(e.target);
             });
             
             // Добавляем обработчик для клавиш для лучшего UX
@@ -70,9 +78,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     e.preventDefault();
                     navigateGrid(e.key, i);
                 }
+                
+                // Ввод цифр с клавиатуры
+                if (/^[1-9]$/.test(e.key)) {
+                    e.preventDefault();
+                    cell.value = e.key;
+                    cell.classList.add('user-input');
+                }
+            });
+            
+            // Фокус для десктопов
+            cell.addEventListener('focus', function() {
+                setActiveCell(this);
             });
             
             grid.appendChild(cell);
+        }
+    }
+
+    // Установка активной клетки
+    function setActiveCell(cell) {
+        // Убираем активный класс со всех клеток
+        document.querySelectorAll('.sudoku-cell').forEach(c => {
+            c.classList.remove('active');
+        });
+        
+        // Добавляем активный класс выбранной клетке
+        cell.classList.add('active');
+        activeCell = cell;
+        
+        // На мобильных устройствах фокусируемся без клавиатуры
+        if (window.innerWidth <= 767) {
+            cell.blur();
         }
     }
 
@@ -96,8 +133,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (newIndex >= 0 && newIndex < 81) {
-            grid.children[newIndex].focus();
+            const newCell = grid.children[newIndex];
+            setActiveCell(newCell);
+            newCell.focus();
         }
+    }
+
+    // Обработчик виртуальной клавиатуры
+    function setupVirtualKeyboard() {
+        virtualKeyboard.addEventListener('click', function(e) {
+            if (e.target.classList.contains('number-btn') && activeCell) {
+                const number = e.target.dataset.number;
+                
+                if (number === '0') {
+                    // Очистка клетки
+                    activeCell.value = '';
+                    activeCell.classList.remove('user-input');
+                } else {
+                    // Ввод цифры
+                    activeCell.value = number;
+                    activeCell.classList.add('user-input');
+                }
+                
+                // Переходим к следующей клетке автоматически (кроме очистки)
+                if (number !== '0') {
+                    moveToNextCell();
+                }
+            }
+        });
+    }
+
+    // Переход к следующей клетке
+    function moveToNextCell() {
+        if (!activeCell) return;
+        
+        const currentIndex = parseInt(activeCell.dataset.index);
+        const nextIndex = (currentIndex + 1) % 81;
+        const nextCell = grid.children[nextIndex];
+        
+        setActiveCell(nextCell);
     }
 
     // Получаем текущее состояние доски
@@ -197,8 +271,9 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 0; i < 81; i++) {
             const cell = grid.children[i];
             cell.value = '';
-            cell.classList.remove('user-input', 'solved', 'trying', 'backtracking');
+            cell.classList.remove('user-input', 'solved', 'active');
         }
+        activeCell = null;
     }
 
     // Падающие цифры
@@ -244,6 +319,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация
     createGrid();
     createFallingNumbers();
+    setupVirtualKeyboard();
+    
+    // Выбираем первую клетку по умолчанию
+    setTimeout(() => {
+        if (grid.children[0]) {
+            setActiveCell(grid.children[0]);
+        }
+    }, 100);
     
     // Проверяем соединение при загрузке
     setTimeout(() => {
