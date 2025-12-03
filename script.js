@@ -30,15 +30,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Функция проверки необходимости показа клавиатуры
     function shouldShowKeyboard() {
         const width = window.innerWidth;
-        const height = window.innerHeight;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Показываем клавиатуру если:
-        // 1. Это мобильное устройство
-        // 2. Ширина меньше 1000px
-        // 3. Высота меньше 700px
-        // 4. Соотношение сторон указывает на телефон
-        return isMobile || width <= 1000 || height <= 700 || width < height;
+        // Всегда показываем на мобильных устройствах
+        // На десктопах показываем только если окно узкое
+        return isMobile || width <= 1200;
     }
 
     // Функция показа/скрытия клавиатуры
@@ -49,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
             virtualKeyboard.classList.add('show');
             keyboardVisible = true;
             
-            // На мобильных устройствах отключаем фокус на input
+            // На мобильных устройствах делаем input только для чтения
             if (window.innerWidth <= 767) {
                 document.querySelectorAll('.cell-input').forEach(input => {
                     input.readOnly = true;
@@ -57,18 +53,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            console.log(`⌨️ Виртуальная клавиатура: ВКЛ (${window.innerWidth}x${window.innerHeight})`);
+            console.log(`⌨️ Виртуальная клавиатура ВКЛЮЧЕНА (${window.innerWidth}x${window.innerHeight})`);
         } else {
             virtualKeyboard.classList.remove('show');
             keyboardVisible = false;
             
-            // Включаем фокус обратно на десктопах
+            // Включаем редактирование на десктопах
             document.querySelectorAll('.cell-input').forEach(input => {
                 input.readOnly = false;
                 input.style.caretColor = '';
             });
             
-            console.log(`⌨️ Виртуальная клавиатура: ВЫКЛ (${window.innerWidth}x${window.innerHeight})`);
+            console.log(`⌨️ Виртуальная клавиатура ВЫКЛЮЧЕНА (${window.innerWidth}x${window.innerHeight})`);
         }
     }
 
