@@ -1,5 +1,4 @@
 :root {
-    /* Темная тема по умолчанию */
     --bg-color: #0a0a0a;
     --card-bg: linear-gradient(135deg, #1a1a1a 0%, #151515 100%);
     --text-color: #ffffff;
@@ -20,7 +19,6 @@
     --clear-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
     --title-color: #ffffff;
     --solved-color: #000000;
-    /* Ярко-красные переменные для конфликтов */
     --conflict-color: #ff0000;
     --conflict-bg: #ff000020;
     --conflict-border: #ff0000;
@@ -47,7 +45,6 @@
     --clear-gradient: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
     --title-color: #000000;
     --solved-color: #000000;
-    /* Ярко-красные переменные для конфликтов в светлой теме */
     --conflict-color: #ff0000;
     --conflict-bg: #ff000015;
     --conflict-border: #ff0000;
@@ -73,7 +70,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     padding: 10px 5px;
     position: relative;
     transition: all 0.3s ease;
@@ -88,14 +85,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    gap: 15px;
+    justify-content: center;
+    gap: 10px;
     padding: 5px 0;
     margin: 0 auto;
     min-height: 100vh;
 }
 
-/* Кнопка темы в правом верхнем углу */
 .theme-toggle {
     position: fixed;
     top: 12px;
@@ -115,24 +111,11 @@ body {
     z-index: 1000;
 }
 
-.theme-toggle:hover {
-    transform: scale(1.05);
-}
+.theme-toggle:hover { transform: scale(1.05); }
+.theme-toggle:active { transform: scale(0.95); }
+.theme-toggle::before { content: '🌙'; transition: all 0.3s ease; }
+[data-theme="light"] .theme-toggle::before { content: '☀️'; }
 
-.theme-toggle:active {
-    transform: scale(0.95);
-}
-
-.theme-toggle::before {
-    content: '🌙';
-    transition: all 0.3s ease;
-}
-
-[data-theme="light"] .theme-toggle::before {
-    content: '☀️';
-}
-
-/* Заголовок */
 .header {
     display: flex;
     flex-direction: column;
@@ -142,43 +125,22 @@ body {
     padding-top: 40px;
 }
 
-.title-container {
-    text-align: center;
-    width: 100%;
-}
+.title-container { text-align: center; width: 100%; }
+.title { font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight: 800; color: var(--title-color); margin-bottom: 2px; letter-spacing: -0.5px; text-shadow: 0 1px 3px var(--shadow-color); }
+.subtitle { font-size: clamp(0.7rem, 1.8vw, 0.8rem); color: var(--text-secondary); font-weight: 400; letter-spacing: 0.5px; }
 
-.title {
-    font-size: clamp(1.6rem, 6vw, 2.2rem);
-    font-weight: 800;
-    color: var(--title-color);
-    margin-bottom: 2px;
-    letter-spacing: -0.5px;
-    text-shadow: 0 1px 3px var(--shadow-color);
-}
-
-.subtitle {
-    font-size: clamp(0.7rem, 1.8vw, 0.8rem);
-    color: var(--text-secondary);
-    font-weight: 400;
-    letter-spacing: 0.5px;
-}
-
-/* Поле судоку - ФИКСИРОВАННЫЙ РАЗМЕР */
 .sudoku-platform {
     background: var(--card-bg);
     border-radius: 12px;
-    padding: 12px;
+    padding: clamp(8px, 2vw, 12px);
     display: inline-block;
-    box-shadow: 
-        0 8px 20px var(--shadow-color),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 20px var(--shadow-color), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
     width: fit-content;
     margin: 5px 0;
-    /* Фиксируем размер, не зависит от других элементов */
-    min-width: 300px;
-    max-width: 450px;
+    min-width: 280px;
+    max-width: 95vw;
 }
 
 .sudoku-grid {
@@ -190,13 +152,10 @@ body {
     background-color: var(--border-color);
     border-radius: 6px;
     overflow: hidden;
-    width: 400px;
-    height: 400px;
-    max-width: 85vw;
-    max-height: 85vw;
+    width: clamp(280px, 85vw, 450px);
+    height: clamp(280px, 85vw, 450px);
 }
 
-/* КЛЕТКИ СУДОКУ */
 .sudoku-cell {
     width: 100%;
     height: 100%;
@@ -204,7 +163,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 4vw, 1.5rem);
     font-weight: 600;
     color: var(--cell-text);
     background-color: var(--cell-bg);
@@ -215,106 +174,41 @@ body {
     position: relative;
 }
 
-.sudoku-cell:focus {
-    outline: none;
-    background-color: var(--cell-active-bg);
-}
-
-/* Активная клетка */
-.sudoku-cell.active {
-    background-color: var(--cell-active-bg);
-    box-shadow: inset 0 0 0 2px var(--accent-color);
-    z-index: 1;
-}
-
-/* Пульсация для активной клетки */
-.sudoku-cell.active {
-    animation: pulse 2s infinite;
-}
+.sudoku-cell:focus { outline: none; background-color: var(--cell-active-bg); }
+.sudoku-cell.active { background-color: var(--cell-active-bg); box-shadow: inset 0 0 0 2px var(--accent-color); z-index: 1; animation: pulse 2s infinite; }
 
 @keyframes pulse {
-    0% {
-        box-shadow: inset 0 0 0 2px var(--accent-color), 0 0 0 0 rgba(112, 161, 255, 0.4);
-    }
-    70% {
-        box-shadow: inset 0 0 0 2px var(--accent-color), 0 0 0 10px rgba(112, 161, 255, 0);
-    }
-    100% {
-        box-shadow: inset 0 0 0 2px var(--accent-color), 0 0 0 0 rgba(112, 161, 255, 0);
-    }
+    0% { box-shadow: inset 0 0 0 2px var(--accent-color), 0 0 0 0 rgba(112, 161, 255, 0.4); }
+    70% { box-shadow: inset 0 0 0 2px var(--accent-color), 0 0 0 10px rgba(112, 161, 255, 0); }
+    100% { box-shadow: inset 0 0 0 2px var(--accent-color), 0 0 0 0 rgba(112, 161, 255, 0); }
 }
 
-/* Клетка с конфликтом - ЯРКАЯ ПОСТОЯННАЯ ПОДСВЕТКА */
-.sudoku-cell.conflict {
-    background-color: var(--conflict-bg) !important;
-    border-color: var(--conflict-border) !important;
-    color: var(--conflict-color) !important;
-    font-weight: 700;
-    z-index: 2;
-    position: relative;
-}
+.sudoku-cell.conflict { background-color: var(--conflict-bg) !important; border-color: var(--conflict-border) !important; color: var(--conflict-color) !important; font-weight: 700; z-index: 2; position: relative; }
+.sudoku-cell.conflict:nth-child(3n) { border-right: 2px solid var(--conflict-border) !important; }
+.sudoku-cell.conflict:nth-child(9n) { border-right: 1px solid var(--conflict-border) !important; }
+.sudoku-cell.conflict:nth-child(n+19):nth-child(-n+27), .sudoku-cell.conflict:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--conflict-border) !important; }
 
-/* Границы для конфликтных клеток в блоках 3x3 */
-.sudoku-cell.conflict:nth-child(3n) { 
-    border-right: 2px solid var(--conflict-border) !important; 
-}
-.sudoku-cell.conflict:nth-child(9n) { 
-    border-right: 1px solid var(--conflict-border) !important; 
-}
-.sudoku-cell.conflict:nth-child(n+19):nth-child(-n+27),
-.sudoku-cell.conflict:nth-child(n+46):nth-child(-n+54) { 
-    border-bottom: 2px solid var(--conflict-border) !important; 
-}
-
-/* Активная клетка с конфликтом - комбинированный стиль */
-.sudoku-cell.active.conflict {
-    background-color: color-mix(in srgb, var(--conflict-bg) 70%, var(--cell-active-bg) 30%) !important;
-    box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 0 rgba(255, 0, 0, 0.4) !important;
-    animation: pulseConflict 2s infinite;
-}
+.sudoku-cell.active.conflict { background-color: color-mix(in srgb, var(--conflict-bg) 70%, var(--cell-active-bg) 30%) !important; box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 0 rgba(255, 0, 0, 0.4) !important; animation: pulseConflict 2s infinite; }
 
 @keyframes pulseConflict {
-    0% {
-        box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 0 rgba(255, 0, 0, 0.4);
-    }
-    70% {
-        box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 10px rgba(255, 0, 0, 0);
-    }
-    100% {
-        box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 0 rgba(255, 0, 0, 0);
-    }
+    0% { box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 0 rgba(255, 0, 0, 0.4); }
+    70% { box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 10px rgba(255, 0, 0, 0); }
+    100% { box-shadow: inset 0 0 0 2px var(--conflict-border), 0 0 0 0 rgba(255, 0, 0, 0); }
 }
 
-/* Границы для блоков 3x3 */
 .sudoku-cell:nth-child(3n) { border-right: 2px solid var(--border-color); }
 .sudoku-cell:nth-child(9n) { border-right: 1px solid var(--border-color); }
-.sudoku-cell:nth-child(n+19):nth-child(-n+27),
-.sudoku-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-color); }
+.sudoku-cell:nth-child(n+19):nth-child(-n+27), .sudoku-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-color); }
 
-.sudoku-cell.user-input { 
-    color: var(--accent-color); 
-    font-weight: 700;
-}
+.sudoku-cell.user-input { color: var(--accent-color); font-weight: 700; }
 
-/* АНИМАЦИЯ ПОЯВЛЕНИЯ ЦИФР */
-.sudoku-cell.solved { 
-    color: var(--solved-color);
-    font-weight: 700;
-    animation: fadeInScale 0.3s ease-out;
-}
+.sudoku-cell.solved { color: var(--solved-color); font-weight: 700; animation: fadeInScale 0.3s ease-out; }
 
 @keyframes fadeInScale {
-    0% { 
-        transform: scale(0.8);
-        opacity: 0;
-    }
-    100% { 
-        transform: scale(1);
-        opacity: 1;
-    }
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
-/* Стили для input */
 .cell-input {
     width: 100%;
     height: 100%;
@@ -330,7 +224,6 @@ body {
     padding: 0;
 }
 
-/* Управление - кнопки */
 .controls {
     display: flex;
     flex-direction: column;
@@ -342,14 +235,8 @@ body {
     margin: 5px 0;
 }
 
-.buttons-row {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    width: 100%;
-}
+.buttons-row { display: flex; gap: 15px; justify-content: center; width: 100%; }
 
-/* Кнопки "Решить" и "Очистить" */
 .solve-btn, .clear-btn {
     padding: 12px 24px;
     font-size: 0.95rem;
@@ -368,52 +255,22 @@ body {
     flex: 1;
 }
 
-.solve-btn {
-    background: var(--button-gradient);
-    color: white;
-}
+.solve-btn { background: var(--button-gradient); color: white; }
+.solve-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(112, 161, 255, 0.4); }
+.solve-btn:active:not(:disabled) { transform: translateY(0); box-shadow: 0 3px 8px rgba(112, 161, 255, 0.3); }
 
-.solve-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(112, 161, 255, 0.4);
-}
+.clear-btn { background: var(--clear-gradient); color: white; }
+.clear-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4); }
+.clear-btn:active { transform: translateY(0); box-shadow: 0 3px 8px rgba(255, 107, 107, 0.3); }
 
-.solve-btn:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 3px 8px rgba(112, 161, 255, 0.3);
-}
+button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: 0 2px 5px var(--shadow-color); }
 
-.clear-btn {
-    background: var(--clear-gradient);
-    color: white;
-}
-
-.clear-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
-}
-
-.clear-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 3px 8px rgba(255, 107, 107, 0.3);
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: 0 2px 5px var(--shadow-color);
-}
-
-/* ================== ВИРТУАЛЬНАЯ КЛАВИАТУРА ================== */
-
-/* Виртуальная клавиатура - КОМПАКТНАЯ */
 .virtual-keyboard {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: clamp(4px, 1.5vw, 6px);
     width: 100%;
-    max-width: 380px;
+    max-width: clamp(280px, 85vw, 380px);
     margin: 5px 0 8px 0;
     padding: 0;
     background: transparent;
@@ -427,26 +284,16 @@ button:disabled {
     overflow: hidden;
 }
 
-.virtual-keyboard.show {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-    max-height: 130px;
-}
+.virtual-keyboard.show { opacity: 1; transform: translateY(0); pointer-events: auto; max-height: 130px; }
 
-.keyboard-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-    width: 100%;
-}
+.keyboard-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(4px, 1.5vw, 6px); width: 100%; }
 
 .number-btn {
     background: linear-gradient(135deg, var(--accent-color) 0%, #5352ed 100%);
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 3.5vw, 1.1rem);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -455,582 +302,145 @@ button:disabled {
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 5px var(--shadow-color);
-    min-height: 44px;
-    min-width: 44px;
+    min-height: clamp(38px, 9vw, 44px);
+    min-width: clamp(38px, 9vw, 44px);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     padding: 0;
 }
 
-.number-btn:hover {
-    background: linear-gradient(135deg, var(--accent-hover) 0%, #6362fd 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 7px var(--shadow-color);
-}
+.number-btn:hover { background: linear-gradient(135deg, var(--accent-hover) 0%, #6362fd 100%); transform: translateY(-1px); box-shadow: 0 3px 7px var(--shadow-color); }
+.number-btn:active { transform: translateY(0); box-shadow: 0 1px 3px var(--shadow-color); }
 
-.number-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px var(--shadow-color);
-}
+.clear-cell-btn { background: linear-gradient(135deg, var(--danger-color) 0%, #e53e3e 100%); color: white; font-size: clamp(1.1rem, 3.5vw, 1.3rem); display: flex; align-items: center; justify-content: center; }
+.clear-cell-btn:hover { background: linear-gradient(135deg, var(--danger-hover) 0%, #f55353 100%); }
 
-.clear-cell-btn {
-    background: linear-gradient(135deg, var(--danger-color) 0%, #e53e3e 100%);
-    color: white;
-    font-size: 1.3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+.signature { margin-top: 8px; font-size: 0.65rem; color: var(--text-secondary); font-weight: 300; letter-spacing: 0.5px; text-align: center; padding: 5px; opacity: 0.7; }
 
-.clear-cell-btn:hover {
-    background: linear-gradient(135deg, var(--danger-hover) 0%, #f55353 100%);
-}
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000; animation: modalFadeIn 0.3s ease; backdrop-filter: blur(5px); }
 
-/* Подпись */
-.signature {
-    margin-top: 8px;
-    font-size: 0.65rem;
-    color: var(--text-secondary);
-    font-weight: 300;
-    letter-spacing: 0.5px;
-    text-align: center;
-    padding: 5px;
-    opacity: 0.7;
-}
+@keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Модальное окно ТОЛЬКО ДЛЯ ОШИБОК */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 1000;
-    animation: modalFadeIn 0.3s ease;
-    backdrop-filter: blur(5px);
-}
+.modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--modal-bg); border-radius: 12px; padding: 0; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); min-width: 300px; max-width: 90vw; overflow: hidden; animation: modalSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-@keyframes modalFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+@keyframes modalSlideIn { from { opacity: 0; transform: translate(-50%, -55%) scale(0.95); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 
-.modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--modal-bg);
-    border-radius: 12px;
-    padding: 0;
-    box-shadow: 
-        0 15px 30px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    min-width: 300px;
-    max-width: 90vw;
-    overflow: hidden;
-    animation: modalSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+.modal-header { background: linear-gradient(135deg, var(--accent-color) 0%, #5352ed 100%); padding: 15px 20px 10px 20px; text-align: center; }
+.modal-title { font-size: 1.1rem; color: white; font-weight: 700; letter-spacing: 0.5px; }
+.modal-body { padding: 20px 20px; font-size: 0.95rem; color: var(--text-color); font-weight: 600; text-align: center; background: transparent; }
+.modal-footer { padding: 15px 20px 20px 20px; text-align: center; border-top: 1px solid var(--border-color); }
 
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -55%) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
+.ok-btn { background: var(--button-gradient); color: white; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(112, 161, 255, 0.3); min-width: 100px; }
+.ok-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(112, 161, 255, 0.4); }
 
-.modal-header {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #5352ed 100%);
-    padding: 15px 20px 10px 20px;
-    text-align: center;
-}
-
-.modal-title {
-    font-size: 1.1rem;
-    color: white;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-.modal-body {
-    padding: 20px 20px;
-    font-size: 0.95rem;
-    color: var(--text-color);
-    font-weight: 600;
-    text-align: center;
-    background: transparent;
-}
-
-.modal-footer {
-    padding: 15px 20px 20px 20px;
-    text-align: center;
-    border-top: 1px solid var(--border-color);
-}
-
-.ok-btn {
-    background: var(--button-gradient);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 8px rgba(112, 161, 255, 0.3);
-    min-width: 100px;
-}
-
-.ok-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(112, 161, 255, 0.4);
-}
-
-/* ================== АДАПТИВНОСТЬ ================== */
-
-/* Очень маленькие экраны (до 480px) - телефоны */
 @media (max-width: 480px) {
-    body {
-        padding: 8px 3px;
-    }
-    
-    .container {
-        gap: 8px;
-        padding: 3px;
-        max-width: 100vw;
-    }
-    
-    .header {
-        margin-bottom: 3px;
-        padding-top: 35px;
-    }
-    
-    .title {
-        font-size: 1.5rem;
-    }
-    
-    .subtitle {
-        font-size: 0.65rem;
-    }
-    
-    .theme-toggle {
-        top: 8px;
-        right: 8px;
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-    }
-    
-    .sudoku-platform {
-        padding: 8px;
-        min-width: 280px;
-        max-width: 95vw;
-    }
-    
-    .sudoku-grid {
-        width: 85vw;
-        height: 85vw;
-        max-width: 280px;
-        max-height: 280px;
-    }
-    
-    .sudoku-cell {
-        font-size: 1.2rem;
-    }
-    
-    .controls {
-        gap: 8px;
-        margin: 3px 0;
-        max-width: 95vw;
-    }
-    
-    .buttons-row {
-        gap: 10px;
-        width: 100%;
-    }
-    
-    .solve-btn, .clear-btn {
-        min-width: 130px;
-        max-width: 140px;
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-    
-    /* Виртуальная клавиатура на маленьких экранах - САМЫЕ МАЛЕНЬКИЕ КНОПКИ */
-    .virtual-keyboard {
-        max-width: 95vw;
-        margin: 3px 0 6px 0;
-        gap: 4px;
-    }
-    
-    .keyboard-row {
-        gap: 4px;
-    }
-    
-    .number-btn {
-        min-height: 38px;
-        min-width: 38px;
-        font-size: 1rem;
-        border-radius: 4px;
-    }
-    
-    .clear-cell-btn {
-        font-size: 1.1rem;
-    }
-    
-    .signature {
-        margin-top: 5px;
-        font-size: 0.6rem;
-    }
-    
-    .modal-content {
-        min-width: 85vw;
-    }
-    
-    .modal-header {
-        padding: 12px 15px 8px 15px;
-    }
-    
-    .modal-body {
-        padding: 15px 15px;
-        font-size: 0.9rem;
-    }
-    
-    .modal-footer {
-        padding: 12px 15px 15px 15px;
-    }
-    
-    .ok-btn {
-        padding: 7px 15px;
-        font-size: 0.85rem;
-        min-width: 90px;
-    }
+    body { padding: 8px 3px; justify-content: flex-start; }
+    .container { gap: 8px; padding: 3px; max-width: 100vw; justify-content: flex-start; }
+    .header { margin-bottom: 3px; padding-top: 35px; }
+    .title { font-size: 1.5rem; }
+    .subtitle { font-size: 0.65rem; }
+    .theme-toggle { top: 8px; right: 8px; width: 32px; height: 32px; font-size: 14px; }
+    .sudoku-platform { padding: 8px; min-width: 280px; max-width: 95vw; }
+    .sudoku-grid { width: 95vw; height: 95vw; max-width: 320px; max-height: 320px; }
+    .sudoku-cell { font-size: 1.2rem; }
+    .controls { gap: 8px; margin: 3px 0; max-width: 95vw; }
+    .buttons-row { gap: 10px; width: 100%; }
+    .solve-btn, .clear-btn { min-width: 130px; max-width: 140px; padding: 10px 15px; font-size: 0.9rem; }
+    .virtual-keyboard { max-width: 95vw; margin: 3px 0 6px 0; gap: 4px; }
+    .keyboard-row { gap: 4px; }
+    .number-btn { min-height: 38px; min-width: 38px; font-size: 1rem; border-radius: 4px; }
+    .clear-cell-btn { font-size: 1.1rem; }
+    .signature { margin-top: 5px; font-size: 0.6rem; }
+    .modal-content { min-width: 85vw; }
+    .modal-header { padding: 12px 15px 8px 15px; }
+    .modal-body { padding: 15px 15px; font-size: 0.9rem; }
+    .modal-footer { padding: 12px 15px 15px 15px; }
+    .ok-btn { padding: 7px 15px; font-size: 0.85rem; min-width: 90px; }
 }
 
-/* Маленькие экраны (481px - 767px) - планшеты/большие телефоны */
 @media (min-width: 481px) and (max-width: 767px) {
-    .container {
-        gap: 10px;
-        padding-top: 10px;
-    }
-    
-    .sudoku-grid {
-        width: 80vw;
-        height: 80vw;
-        max-width: 350px;
-        max-height: 350px;
-    }
-    
-    .sudoku-cell {
-        font-size: 1.3rem;
-    }
-    
-    .solve-btn, .clear-btn {
-        min-width: 135px;
-        max-width: 145px;
-        padding: 11px 18px;
-    }
-    
-    /* Виртуальная клавиатура на планшетах */
-    .virtual-keyboard {
-        max-width: 380px;
-    }
-    
-    .number-btn {
-        min-height: 42px;
-        min-width: 42px;
-        font-size: 1.1rem;
-    }
-    
-    .clear-cell-btn {
-        font-size: 1.2rem;
-    }
+    .container { gap: 10px; padding-top: 10px; }
+    .sudoku-grid { width: 80vw; height: 80vw; max-width: 350px; max-height: 350px; }
+    .sudoku-cell { font-size: 1.3rem; }
+    .solve-btn, .clear-btn { min-width: 135px; max-width: 145px; padding: 11px 18px; }
+    .virtual-keyboard { max-width: 380px; }
+    .number-btn { min-height: 42px; min-width: 42px; font-size: 1.1rem; }
+    .clear-cell-btn { font-size: 1.2rem; }
 }
 
-/* Планшеты (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
-    .sudoku-grid {
-        width: 400px;
-        height: 400px;
-    }
-    
-    .solve-btn, .clear-btn {
-        min-width: 140px;
-        max-width: 150px;
-    }
-    
-    .virtual-keyboard {
-        max-width: 380px;
-    }
-    
-    .number-btn {
-        min-height: 46px;
-        min-width: 46px;
-        font-size: 1.2rem;
-    }
+    .sudoku-grid { width: 400px; height: 400px; }
+    .solve-btn, .clear-btn { min-width: 140px; max-width: 150px; }
+    .virtual-keyboard { max-width: 380px; }
+    .number-btn { min-height: 46px; min-width: 46px; font-size: 1.2rem; }
 }
 
-/* Десктопы (1024px и выше) - КНОПКИ БОЛЬШЕ НА ПК */
 @media (min-width: 1024px) {
-    body {
-        padding: 15px;
-        justify-content: center;
-    }
-    
-    .container {
-        gap: 20px;
-        max-width: 480px;
-        justify-content: center;
-    }
-    
-    .sudoku-grid {
-        width: 420px;
-        height: 420px;
-    }
-    
-    .sudoku-cell {
-        font-size: 1.6rem;
-    }
-    
-    .solve-btn, .clear-btn {
-        min-width: 150px;
-        max-width: 160px;
-        padding: 14px 28px;
-        font-size: 1rem;
-    }
-    
-    .virtual-keyboard {
-        max-width: 420px;
-        margin: 10px 0 12px 0;
-    }
-    
-    .number-btn {
-        min-height: 52px;
-        min-width: 52px;
-        font-size: 1.3rem;
-        border-radius: 8px;
-    }
-    
-    .clear-cell-btn {
-        font-size: 1.5rem;
-    }
+    body { padding: 15px; justify-content: center; }
+    .container { gap: 20px; max-width: 480px; justify-content: center; }
+    .sudoku-grid { width: 420px; height: 420px; }
+    .sudoku-cell { font-size: 1.6rem; }
+    .solve-btn, .clear-btn { min-width: 150px; max-width: 160px; padding: 14px 28px; font-size: 1rem; }
+    .virtual-keyboard { max-width: 420px; margin: 10px 0 12px 0; }
+    .number-btn { min-height: 52px; min-width: 52px; font-size: 1.3rem; border-radius: 8px; }
+    .clear-cell-btn { font-size: 1.5rem; }
 }
 
-/* Десктопы широкие (1200px и выше) */
 @media (min-width: 1200px) {
-    .container {
-        max-width: 500px;
-    }
-    
-    .sudoku-grid {
-        width: 450px;
-        height: 450px;
-    }
-    
-    .virtual-keyboard {
-        max-width: 450px;
-    }
-    
-    .number-btn {
-        min-height: 55px;
-        min-width: 55px;
-        font-size: 1.4rem;
-    }
+    .container { max-width: 500px; }
+    .sudoku-grid { width: 450px; height: 450px; }
+    .virtual-keyboard { max-width: 450px; }
+    .number-btn { min-height: 55px; min-width: 55px; font-size: 1.4rem; }
 }
 
-/* Очень большие экраны (более 1400px) */
 @media (min-width: 1400px) {
-    .container {
-        max-width: 520px;
-    }
-    
-    .sudoku-grid {
-        width: 480px;
-        height: 480px;
-    }
-    
-    .virtual-keyboard {
-        max-width: 480px;
-    }
-    
-    .number-btn {
-        min-height: 58px;
-        min-width: 58px;
-        font-size: 1.5rem;
-    }
+    .container { max-width: 520px; }
+    .sudoku-grid { width: 480px; height: 480px; }
+    .virtual-keyboard { max-width: 480px; }
+    .number-btn { min-height: 58px; min-width: 58px; font-size: 1.5rem; }
 }
 
-/* Маленькая высота (все устройства) */
 @media (max-height: 700px) {
-    .container {
-        padding-top: 5px;
-        gap: 8px;
-        justify-content: flex-start;
-    }
-    
-    .sudoku-grid {
-        width: 70vw;
-        height: 70vw;
-        max-width: 300px;
-        max-height: 300px;
-    }
-    
-    .sudoku-cell {
-        font-size: 1.1rem;
-    }
-    
-    .buttons-row {
-        gap: 10px;
-    }
-    
-    .solve-btn, .clear-btn {
-        min-width: 120px;
-        max-width: 130px;
-        padding: 8px 14px;
-        font-size: 0.85rem;
-    }
-    
-    .virtual-keyboard {
-        margin: 3px 0 6px 0;
-        max-width: 320px;
-    }
-    
-    .number-btn {
-        min-height: 36px;
-        min-width: 36px;
-        font-size: 1rem;
-    }
+    .container { padding-top: 5px; gap: 8px; justify-content: flex-start; }
+    .sudoku-grid { width: 70vw; height: 70vw; max-width: 300px; max-height: 300px; }
+    .sudoku-cell { font-size: 1.1rem; }
+    .buttons-row { gap: 10px; }
+    .solve-btn, .clear-btn { min-width: 120px; max-width: 130px; padding: 8px 14px; font-size: 0.85rem; }
+    .virtual-keyboard { margin: 3px 0 6px 0; max-width: 320px; }
+    .number-btn { min-height: 36px; min-width: 36px; font-size: 1rem; }
 }
 
-/* Для мобильных устройств */
 @media (max-width: 767px) {
-    .sudoku-cell {
-        caret-color: transparent;
-    }
-    
-    .sudoku-cell:focus {
-        user-select: none;
-        outline: none;
-    }
-    
-    .cell-input {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
+    .sudoku-cell { caret-color: transparent; }
+    .sudoku-cell:focus { user-select: none; outline: none; }
+    .cell-input { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
 }
 
-/* Экстремально узкие экраны (до 350px) */
 @media (max-width: 350px) {
-    .container {
-        gap: 6px;
-    }
-    
-    .sudoku-platform {
-        min-width: 260px;
-        padding: 6px;
-    }
-    
-    .sudoku-grid {
-        max-width: 260px;
-        max-height: 260px;
-    }
-    
-    .sudoku-cell {
-        font-size: 1rem;
-    }
-    
-    .virtual-keyboard {
-        max-width: 95vw;
-        gap: 3px;
-    }
-    
-    .keyboard-row {
-        gap: 3px;
-    }
-    
-    .number-btn {
-        min-height: 36px;
-        min-width: 36px;
-        font-size: 0.95rem;
-    }
-    
-    .solve-btn, .clear-btn {
-        min-width: 115px;
-        max-width: 120px;
-        padding: 7px 12px;
-        font-size: 0.8rem;
-    }
+    .container { gap: 6px; }
+    .sudoku-platform { min-width: 260px; padding: 6px; }
+    .sudoku-grid { max-width: 260px; max-height: 260px; }
+    .sudoku-cell { font-size: 1rem; }
+    .virtual-keyboard { max-width: 95vw; gap: 3px; }
+    .keyboard-row { gap: 3px; }
+    .number-btn { min-height: 36px; min-width: 36px; font-size: 0.95rem; }
+    .solve-btn, .clear-btn { min-width: 115px; max-width: 120px; padding: 7px 12px; font-size: 0.8rem; }
 }
 
-/* Вертикальная ориентация телефонов */
 @media (max-height: 600px) and (orientation: portrait) {
-    .header {
-        padding-top: 30px;
-    }
-    
-    .sudoku-grid {
-        max-width: 250px;
-        max-height: 250px;
-    }
-    
-    .number-btn {
-        min-height: 34px;
-        min-width: 34px;
-        font-size: 0.9rem;
-    }
-    
-    .virtual-keyboard {
-        max-height: 110px;
-    }
+    .header { padding-top: 30px; }
+    .sudoku-grid { max-width: 250px; max-height: 250px; }
+    .number-btn { min-height: 34px; min-width: 34px; font-size: 0.9rem; }
+    .virtual-keyboard { max-height: 110px; }
 }
 
-/* Горизонтальная ориентация телефонов */
 @media (max-height: 500px) and (orientation: landscape) {
-    .container {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-        max-width: 100vw;
-    }
-    
-    .header {
-        width: 100%;
-        padding-top: 20px;
-        margin-bottom: 0;
-    }
-    
-    .sudoku-platform {
-        margin: 0;
-    }
-    
-    .virtual-keyboard {
-        order: 3;
-        max-width: 300px;
-        margin: 5px 0;
-    }
-    
-    .controls {
-        order: 4;
-        max-width: 300px;
-    }
-    
-    .signature {
-        order: 5;
-        width: 100%;
-    }
+    .container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 100vw; }
+    .header { width: 100%; padding-top: 20px; margin-bottom: 0; }
+    .sudoku-platform { margin: 0; }
+    .virtual-keyboard { order: 3; max-width: 300px; margin: 5px 0; }
+    .controls { order: 4; max-width: 300px; }
+    .signature { order: 5; width: 100%; }
 }
 
-/* Анимация переключения темы */
-.theme-transition * {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
+.theme-transition * { transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; }
