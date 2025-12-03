@@ -71,7 +71,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px 5px;
+    padding: clamp(5px, 1vh, 10px) clamp(3px, 1vw, 5px);
     position: relative;
     transition: all 0.3s ease;
 }
@@ -86,10 +86,10 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 5px 0;
+    gap: clamp(5px, 2vh, 10px);
+    padding: clamp(3px, 1vh, 5px) 0;
     margin: 0 auto;
-    min-height: 100vh;
+    flex-grow: 1;
 }
 
 .theme-toggle {
@@ -268,10 +268,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
 .virtual-keyboard {
     display: flex;
     flex-direction: column;
-    gap: clamp(4px, 1.5vw, 6px);
+    gap: clamp(3px, 1vw, 6px);
     width: 100%;
     max-width: clamp(280px, 85vw, 380px);
-    margin: 5px 0 8px 0;
+    margin: clamp(3px, 1vh, 5px) 0 clamp(4px, 1vh, 8px) 0;
     padding: 0;
     background: transparent;
     border: none;
@@ -284,16 +284,16 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
     overflow: hidden;
 }
 
-.virtual-keyboard.show { opacity: 1; transform: translateY(0); pointer-events: auto; max-height: 130px; }
+.virtual-keyboard.show { opacity: 1; transform: translateY(0); pointer-events: auto; max-height: 120px; }
 
-.keyboard-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(4px, 1.5vw, 6px); width: 100%; }
+.keyboard-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(3px, 1vw, 6px); width: 100%; }
 
 .number-btn {
     background: linear-gradient(135deg, var(--accent-color) 0%, #5352ed 100%);
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: clamp(1rem, 3.5vw, 1.1rem);
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -302,8 +302,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 5px var(--shadow-color);
-    min-height: clamp(38px, 9vw, 44px);
-    min-width: clamp(38px, 9vw, 44px);
+    min-height: clamp(30px, 8vw, 40px);
+    min-width: clamp(30px, 8vw, 40px);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     padding: 0;
@@ -312,10 +312,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
 .number-btn:hover { background: linear-gradient(135deg, var(--accent-hover) 0%, #6362fd 100%); transform: translateY(-1px); box-shadow: 0 3px 7px var(--shadow-color); }
 .number-btn:active { transform: translateY(0); box-shadow: 0 1px 3px var(--shadow-color); }
 
-.clear-cell-btn { background: linear-gradient(135deg, var(--danger-color) 0%, #e53e3e 100%); color: white; font-size: clamp(1.1rem, 3.5vw, 1.3rem); display: flex; align-items: center; justify-content: center; }
+.clear-cell-btn { background: linear-gradient(135deg, var(--danger-color) 0%, #e53e3e 100%); color: white; font-size: clamp(1rem, 3vw, 1.3rem); display: flex; align-items: center; justify-content: center; }
 .clear-cell-btn:hover { background: linear-gradient(135deg, var(--danger-hover) 0%, #f55353 100%); }
 
-.signature { margin-top: 8px; font-size: 0.65rem; color: var(--text-secondary); font-weight: 300; letter-spacing: 0.5px; text-align: center; padding: 5px; opacity: 0.7; }
+.signature { margin-top: clamp(4px, 1vh, 8px); font-size: 0.65rem; color: var(--text-secondary); font-weight: 300; letter-spacing: 0.5px; text-align: center; padding: 5px; opacity: 0.7; }
 
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000; animation: modalFadeIn 0.3s ease; backdrop-filter: blur(5px); }
 
@@ -334,80 +334,80 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
 .ok-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(112, 161, 255, 0.4); }
 
 @media (max-width: 480px) {
-    body { padding: 8px 3px; justify-content: flex-start; }
-    .container { gap: 8px; padding: 3px; max-width: 100vw; justify-content: flex-start; }
-    .header { margin-bottom: 3px; padding-top: 35px; }
-    .title { font-size: 1.5rem; }
-    .subtitle { font-size: 0.65rem; }
+    body { padding: 5px 3px; justify-content: flex-start; }
+    .container { gap: 5px; padding: 3px; max-width: 100vw; justify-content: flex-start; flex-grow: 0; }
+    .header { margin-bottom: 3px; padding-top: 30px; }
+    .title { font-size: 1.4rem; }
+    .subtitle { font-size: 0.6rem; }
     .theme-toggle { top: 8px; right: 8px; width: 32px; height: 32px; font-size: 14px; }
-    .sudoku-platform { padding: 8px; min-width: 280px; max-width: 95vw; }
-    .sudoku-grid { width: 95vw; height: 95vw; max-width: 320px; max-height: 320px; }
-    .sudoku-cell { font-size: 1.2rem; }
-    .controls { gap: 8px; margin: 3px 0; max-width: 95vw; }
-    .buttons-row { gap: 10px; width: 100%; }
-    .solve-btn, .clear-btn { min-width: 130px; max-width: 140px; padding: 10px 15px; font-size: 0.9rem; }
-    .virtual-keyboard { max-width: 95vw; margin: 3px 0 6px 0; gap: 4px; }
-    .keyboard-row { gap: 4px; }
-    .number-btn { min-height: 38px; min-width: 38px; font-size: 1rem; border-radius: 4px; }
-    .clear-cell-btn { font-size: 1.1rem; }
-    .signature { margin-top: 5px; font-size: 0.6rem; }
+    .sudoku-platform { padding: 6px; min-width: 260px; max-width: 95vw; }
+    .sudoku-grid { width: 95vw; height: 95vw; max-width: 300px; max-height: 300px; }
+    .sudoku-cell { font-size: 1.1rem; }
+    .controls { gap: 6px; margin: 3px 0; max-width: 95vw; }
+    .buttons-row { gap: 8px; width: 100%; }
+    .solve-btn, .clear-btn { min-width: 120px; max-width: 130px; padding: 8px 12px; font-size: 0.85rem; }
+    .virtual-keyboard { max-width: 95vw; margin: 3px 0 5px 0; gap: 3px; max-height: 100px; }
+    .keyboard-row { gap: 3px; }
+    .number-btn { min-height: 30px; min-width: 30px; font-size: 0.9rem; border-radius: 4px; }
+    .clear-cell-btn { font-size: 1rem; }
+    .signature { margin-top: 4px; font-size: 0.55rem; }
     .modal-content { min-width: 85vw; }
-    .modal-header { padding: 12px 15px 8px 15px; }
-    .modal-body { padding: 15px 15px; font-size: 0.9rem; }
-    .modal-footer { padding: 12px 15px 15px 15px; }
-    .ok-btn { padding: 7px 15px; font-size: 0.85rem; min-width: 90px; }
+    .modal-header { padding: 10px 12px 6px 12px; }
+    .modal-body { padding: 12px 12px; font-size: 0.85rem; }
+    .modal-footer { padding: 10px 12px 12px 12px; }
+    .ok-btn { padding: 6px 12px; font-size: 0.8rem; min-width: 80px; }
 }
 
 @media (min-width: 481px) and (max-width: 767px) {
-    .container { gap: 10px; padding-top: 10px; }
+    .container { gap: 8px; padding-top: 8px; }
     .sudoku-grid { width: 80vw; height: 80vw; max-width: 350px; max-height: 350px; }
-    .sudoku-cell { font-size: 1.3rem; }
-    .solve-btn, .clear-btn { min-width: 135px; max-width: 145px; padding: 11px 18px; }
-    .virtual-keyboard { max-width: 380px; }
-    .number-btn { min-height: 42px; min-width: 42px; font-size: 1.1rem; }
-    .clear-cell-btn { font-size: 1.2rem; }
+    .sudoku-cell { font-size: 1.2rem; }
+    .solve-btn, .clear-btn { min-width: 130px; max-width: 140px; padding: 10px 15px; }
+    .virtual-keyboard { max-width: 350px; }
+    .number-btn { min-height: 35px; min-width: 35px; font-size: 1rem; }
+    .clear-cell-btn { font-size: 1.1rem; }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-    .sudoku-grid { width: 400px; height: 400px; }
-    .solve-btn, .clear-btn { min-width: 140px; max-width: 150px; }
-    .virtual-keyboard { max-width: 380px; }
-    .number-btn { min-height: 46px; min-width: 46px; font-size: 1.2rem; }
+    .sudoku-grid { width: 380px; height: 380px; }
+    .solve-btn, .clear-btn { min-width: 135px; max-width: 145px; }
+    .virtual-keyboard { max-width: 350px; }
+    .number-btn { min-height: 40px; min-width: 40px; font-size: 1.1rem; }
 }
 
 @media (min-width: 1024px) {
     body { padding: 15px; justify-content: center; }
-    .container { gap: 20px; max-width: 480px; justify-content: center; }
+    .container { gap: 15px; max-width: 480px; justify-content: center; }
     .sudoku-grid { width: 420px; height: 420px; }
     .sudoku-cell { font-size: 1.6rem; }
     .solve-btn, .clear-btn { min-width: 150px; max-width: 160px; padding: 14px 28px; font-size: 1rem; }
-    .virtual-keyboard { max-width: 420px; margin: 10px 0 12px 0; }
-    .number-btn { min-height: 52px; min-width: 52px; font-size: 1.3rem; border-radius: 8px; }
-    .clear-cell-btn { font-size: 1.5rem; }
+    .virtual-keyboard { max-width: 420px; margin: 8px 0 10px 0; }
+    .number-btn { min-height: 45px; min-width: 45px; font-size: 1.2rem; border-radius: 8px; }
+    .clear-cell-btn { font-size: 1.4rem; }
 }
 
 @media (min-width: 1200px) {
     .container { max-width: 500px; }
     .sudoku-grid { width: 450px; height: 450px; }
     .virtual-keyboard { max-width: 450px; }
-    .number-btn { min-height: 55px; min-width: 55px; font-size: 1.4rem; }
+    .number-btn { min-height: 50px; min-width: 50px; font-size: 1.3rem; }
 }
 
 @media (min-width: 1400px) {
     .container { max-width: 520px; }
     .sudoku-grid { width: 480px; height: 480px; }
     .virtual-keyboard { max-width: 480px; }
-    .number-btn { min-height: 58px; min-width: 58px; font-size: 1.5rem; }
+    .number-btn { min-height: 55px; min-width: 55px; font-size: 1.4rem; }
 }
 
 @media (max-height: 700px) {
-    .container { padding-top: 5px; gap: 8px; justify-content: flex-start; }
+    .container { padding-top: 5px; gap: 5px; justify-content: flex-start; }
     .sudoku-grid { width: 70vw; height: 70vw; max-width: 300px; max-height: 300px; }
-    .sudoku-cell { font-size: 1.1rem; }
-    .buttons-row { gap: 10px; }
+    .sudoku-cell { font-size: 1rem; }
+    .buttons-row { gap: 8px; }
     .solve-btn, .clear-btn { min-width: 120px; max-width: 130px; padding: 8px 14px; font-size: 0.85rem; }
-    .virtual-keyboard { margin: 3px 0 6px 0; max-width: 320px; }
-    .number-btn { min-height: 36px; min-width: 36px; font-size: 1rem; }
+    .virtual-keyboard { margin: 3px 0 5px 0; max-width: 320px; max-height: 100px; }
+    .number-btn { min-height: 32px; min-width: 32px; font-size: 0.95rem; }
 }
 
 @media (max-width: 767px) {
@@ -417,29 +417,29 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
 }
 
 @media (max-width: 350px) {
-    .container { gap: 6px; }
-    .sudoku-platform { min-width: 260px; padding: 6px; }
-    .sudoku-grid { max-width: 260px; max-height: 260px; }
-    .sudoku-cell { font-size: 1rem; }
-    .virtual-keyboard { max-width: 95vw; gap: 3px; }
-    .keyboard-row { gap: 3px; }
-    .number-btn { min-height: 36px; min-width: 36px; font-size: 0.95rem; }
-    .solve-btn, .clear-btn { min-width: 115px; max-width: 120px; padding: 7px 12px; font-size: 0.8rem; }
+    .container { gap: 4px; }
+    .sudoku-platform { min-width: 240px; padding: 5px; }
+    .sudoku-grid { max-width: 240px; max-height: 240px; }
+    .sudoku-cell { font-size: 0.95rem; }
+    .virtual-keyboard { max-width: 95vw; gap: 2px; }
+    .keyboard-row { gap: 2px; }
+    .number-btn { min-height: 28px; min-width: 28px; font-size: 0.85rem; }
+    .solve-btn, .clear-btn { min-width: 110px; max-width: 115px; padding: 6px 10px; font-size: 0.75rem; }
 }
 
 @media (max-height: 600px) and (orientation: portrait) {
-    .header { padding-top: 30px; }
-    .sudoku-grid { max-width: 250px; max-height: 250px; }
-    .number-btn { min-height: 34px; min-width: 34px; font-size: 0.9rem; }
-    .virtual-keyboard { max-height: 110px; }
+    .header { padding-top: 25px; }
+    .sudoku-grid { max-width: 240px; max-height: 240px; }
+    .number-btn { min-height: 30px; min-width: 30px; font-size: 0.85rem; }
+    .virtual-keyboard { max-height: 90px; }
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
-    .container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 100vw; }
-    .header { width: 100%; padding-top: 20px; margin-bottom: 0; }
+    .container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 100vw; flex-grow: 0; }
+    .header { width: 100%; padding-top: 15px; margin-bottom: 0; }
     .sudoku-platform { margin: 0; }
-    .virtual-keyboard { order: 3; max-width: 300px; margin: 5px 0; }
-    .controls { order: 4; max-width: 300px; }
+    .virtual-keyboard { order: 3; max-width: 280px; margin: 3px 0; }
+    .controls { order: 4; max-width: 280px; }
     .signature { order: 5; width: 100%; }
 }
 
