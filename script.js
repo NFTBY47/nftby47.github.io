@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const htmlElement = document.documentElement;
 
     // ============ КОНФИГУРАЦИЯ ============
+    // ПРОДАКШЕН - PythonAnywhere бэкенд
     const SERVER_URL = 'https://almorozov.pythonanywhere.com';
     const SERVER_TIMEOUT = 5000;
     
@@ -28,8 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Проверяем, нужно ли показывать клавиатуру
     function shouldShowKeyboard() {
         const width = window.innerWidth;
-        // Показываем на мобильных и узких экранах
-        return width <= 1200;
+        const height = window.innerHeight;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Показываем клавиатуру на мобильных и узких экранах
+        return isMobile || width <= 1100;
     }
 
     // Показываем/скрываем клавиатуру
@@ -40,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             virtualKeyboard.classList.add('show');
             keyboardVisible = true;
             
-            // На мобильных устройствах делаем input только для чтения
+            // На мобильных устройствах отключаем фокус на input
             if (window.innerWidth <= 767) {
                 document.querySelectorAll('.cell-input').forEach(input => {
                     input.readOnly = true;
@@ -48,18 +52,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            console.log(`⌨️ Виртуальная клавиатура: ВКЛ (${window.innerWidth}px)`);
+            console.log(`⌨️ Клавиатура ВКЛ (${window.innerWidth}px)`);
         } else {
             virtualKeyboard.classList.remove('show');
             keyboardVisible = false;
             
-            // Включаем редактирование на десктопах
+            // Включаем фокус обратно на десктопах
             document.querySelectorAll('.cell-input').forEach(input => {
                 input.readOnly = false;
                 input.style.caretColor = '';
             });
             
-            console.log(`⌨️ Виртуальная клавиатура: ВЫКЛ (${window.innerWidth}px)`);
+            console.log(`⌨️ Клавиатура ВЫКЛ (${window.innerWidth}px)`);
         }
     }
 
@@ -71,16 +75,20 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 this.style.transform = 'scale(0.9)';
+                this.style.opacity = '0.8';
             });
             btn.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 this.style.transform = '';
-                const clickEvent = new MouseEvent('click', {
-                    view: window,
-                    bubbles: true,
-                    cancelable: true
-                });
-                this.dispatchEvent(clickEvent);
+                this.style.opacity = '1';
+                if (window.innerWidth <= 767) {
+                    const clickEvent = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    this.dispatchEvent(clickEvent);
+                }
             });
         });
     }
@@ -109,7 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.value = '';
                 activeCell.classList.remove('user-input', 'solved');
                 
-                // Если было значение, обновляем конфликты
                 if (oldValue !== '') {
                     setTimeout(async () => {
                         await updateConflicts(cellIndex);
@@ -122,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 activeCell.classList.add('user-input');
                 activeCell.classList.remove('solved');
                 
-                // Если значение изменилось, обновляем конфликты
                 if (oldValue !== number) {
                     setTimeout(async () => {
                         await updateConflicts(cellIndex);
@@ -257,14 +263,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Для мобильных
-            input.addEventListener('touchstart', function(e) {
-                if (window.innerWidth <= 767) {
-                    e.preventDefault();
-                    handleCellClick(cell);
-                }
-            });
-            
             grid.appendChild(cell);
         }
     }
@@ -322,16 +320,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const index = parseInt(cell.dataset.index);
         
         if (e.key === 'Backspace' || e.key === 'Delete') {
-            // Сохраняем старое значение для проверки
-            const oldValue = input.value;
-            
             setTimeout(async () => {
                 if (input.value === '') {
                     cell.classList.remove('user-input', 'solved');
-                    // Если было значение, обновляем конфликты
-                    if (oldValue !== '') {
-                        await updateConflicts(index);
-                    }
                 }
             }, 0);
         }
@@ -345,12 +336,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ввод цифр (только на десктопах без клавиатуры)
         if (!keyboardVisible && /^[1-9]$/.test(e.key)) {
             e.preventDefault();
-            const oldValue = input.value;
             input.value = e.key;
             cell.classList.add('user-input');
             cell.classList.remove('solved');
             
-            // Если значение изменилось, обновляем конфликты
             setTimeout(async () => {
                 await updateConflicts(index);
             }, 50);
@@ -393,11 +382,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (newIndex >= 0 && newIndex < 81) {
             const newCell = grid.children[newIndex];
             handleCellClick(newCell);
-            
-            const input = newCell.querySelector('.cell-input');
-            if (window.innerWidth > 767) {
-                input.focus();
-            }
         }
     }
 
@@ -405,19 +389,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function getBoard() {
         const board = [];
         for (let i = 0; i < 81; i++) {
-            const cell = grid.children[i];
-            const input = cell.querySelector('.cell-input');
+            const input = grid.children[i].querySelector('.cell-input');
             board.push(input.value === '' ? 0 : parseInt(input.value));
         }
         return board;
     }
 
-    // Проверка конфликтов (упрощенная)
+    // Проверка конфликтов
     async function updateConflicts(cellIndex) {
         const board = getBoard();
         const value = board[cellIndex];
         
-        // Если клетка пустая - убираем конфликты
         if (value === 0) {
             grid.children[cellIndex].classList.remove('conflict');
             return;
@@ -425,7 +407,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const row = Math.floor(cellIndex / 9);
         const col = cellIndex % 9;
-        
         let hasConflict = false;
         
         // Проверка строки
@@ -498,47 +479,47 @@ document.addEventListener('DOMContentLoaded', function() {
             return true;
         }
 
-        findEmpty(board) {
+        solveSudoku(board) {
             for (let i = 0; i < 81; i++) {
                 if (board[i] === 0) {
-                    return { row: Math.floor(i / 9), col: i % 9, index: i };
-                }
-            }
-            return null;
-        }
-
-        solveSudoku(board) {
-            const empty = this.findEmpty(board);
-            if (!empty) return true;
-            
-            const { row, col, index } = empty;
-            
-            for (let num = 1; num <= 9; num++) {
-                if (this.isValid(board, row, col, num)) {
-                    board[index] = num;
+                    const row = Math.floor(i / 9);
+                    const col = i % 9;
                     
-                    if (this.solveSudoku(board)) {
-                        return true;
+                    for (let num = 1; num <= 9; num++) {
+                        if (this.isValid(board, row, col, num)) {
+                            board[i] = num;
+                            if (this.solveSudoku(board)) return true;
+                            board[i] = 0;
+                        }
                     }
-                    
-                    board[index] = 0;
+                    return false;
                 }
             }
-            
-            return false;
+            return true;
         }
 
         solve() {
             const boardCopy = [...this.board];
             
             // Проверяем конфликты перед решением
-            const hasConflicts = this.hasConflicts(boardCopy);
-            if (hasConflicts) {
-                return { 
-                    solved: false, 
-                    board: null, 
-                    message: 'Некорректное судоку: есть конфликты' 
-                };
+            for (let i = 0; i < 81; i++) {
+                if (boardCopy[i] !== 0) {
+                    const row = Math.floor(i / 9);
+                    const col = i % 9;
+                    const num = boardCopy[i];
+                    boardCopy[i] = 0;
+                    
+                    if (!this.isValid(boardCopy, row, col, num)) {
+                        boardCopy[i] = num;
+                        return { 
+                            solved: false, 
+                            board: null, 
+                            message: 'Некорректное судоку: есть конфликты' 
+                        };
+                    }
+                    
+                    boardCopy[i] = num;
+                }
             }
             
             const isSolved = this.solveSudoku(boardCopy);
@@ -550,67 +531,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 server: 'javascript'
             };
         }
-
-        hasConflicts(board) {
-            for (let i = 0; i < 81; i++) {
-                if (board[i] !== 0) {
-                    const row = Math.floor(i / 9);
-                    const col = i % 9;
-                    const num = board[i];
-                    
-                    // Временно убираем число для проверки
-                    board[i] = 0;
-                    
-                    if (!this.isValid(board, row, col, num)) {
-                        board[i] = num;
-                        return true;
-                    }
-                    
-                    board[i] = num;
-                }
-            }
-            return false;
-        }
     }
 
-    // АНИМАЦИЯ РЕШЕНИЯ
-    async function animateSolution(solutionBoard, source = 'javascript') {
+    // Анимация решения
+    async function animateSolution(solutionBoard) {
         const originalBoard = getBoard();
         
         // Очищаем все конфликты перед решением
         document.querySelectorAll('.sudoku-cell').forEach(cell => {
             cell.classList.remove('conflict');
         });
-        currentConflicts.clear();
         
         // Собираем клетки для решения
         const cellsToSolve = [];
         for (let i = 0; i < 81; i++) {
             if (originalBoard[i] === 0 && solutionBoard[i] !== 0) {
-                const cell = grid.children[i];
-                const row = Math.floor(i / 9);
-                const col = i % 9;
-                const distance = Math.sqrt(Math.pow(row - 4, 2) + Math.pow(col - 4, 2));
-                cellsToSolve.push({ 
-                    cell: cell, 
-                    index: i,
-                    distance: distance
-                });
+                cellsToSolve.push(i);
             }
         }
         
-        // Сортируем от центра к краям
-        cellsToSolve.sort((a, b) => a.distance - b.distance);
-        
         // Анимация решения
         for (let i = 0; i < cellsToSolve.length; i++) {
-            // Проверяем, не была ли прервана анимация
             if (!isSolving || isClearing) {
                 console.log('Анимация прервана');
                 return;
             }
             
-            const { cell, index } = cellsToSolve[i];
+            const index = cellsToSolve[i];
+            const cell = grid.children[index];
             const input = cell.querySelector('.cell-input');
             
             // Задержка для анимации
@@ -622,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.classList.remove('user-input', 'conflict');
         }
         
-        console.log(`✅ Судоку решено (${source})`);
+        console.log('✅ Судоку решено');
     }
 
     // ОСНОВНАЯ ФУНКЦИЯ РЕШЕНИЯ (ГИБРИДНАЯ)
@@ -648,13 +596,11 @@ document.addEventListener('DOMContentLoaded', function() {
         solveBtn.disabled = true;
         solveBtn.textContent = 'Решаем...';
         
-        let solvedBy = 'javascript'; // По умолчанию решает JS
         let solution = null;
         
         try {
             // Пытаемся решить на сервере
             if (useServer) {
-                console.log('🌐 Попытка решения на сервере...');
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), SERVER_TIMEOUT);
@@ -674,18 +620,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (response.ok) {
                         const serverResult = await response.json();
                         if (serverResult && !serverResult.error && serverResult.solved) {
-                            // Сервер успешно решил
                             solution = serverResult.board;
-                            solvedBy = serverResult.server || 'python';
-                            console.log(`✅ Сервер решил`);
+                            console.log('✅ Решено сервером');
                         }
                     }
                 } catch (serverError) {
-                    console.warn('⚠️ Ошибка сервера:', serverError.message);
+                    console.warn('⚠️ Сервер недоступен');
                 }
             }
             
-            // Если сервер не ответил или не смог решить, используем клиент
+            // Если сервер не ответил, используем клиент
             if (!solution) {
                 console.log('💻 Используем клиентский решатель...');
                 const solver = new SudokuSolverClient(originalBoard);
@@ -693,7 +637,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (clientResult.solved) {
                     solution = clientResult.board;
-                    solvedBy = clientResult.server || 'javascript';
                 } else {
                     showModal(clientResult.message, 'Ошибка');
                     isSolving = false;
@@ -704,7 +647,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Анимируем решение
-            await animateSolution(solution, solvedBy);
+            await animateSolution(solution);
             
         } catch (error) {
             console.error('❌ Ошибка при решении:', error);
@@ -718,10 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Очистка сетки
     function clearGrid() {
-        if (isSolving) {
-            console.log('Идет решение, очистка игнорируется');
-            return;
-        }
+        if (isSolving) return;
         
         isClearing = true;
         
@@ -733,15 +673,8 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.classList.remove('user-input', 'solved', 'active', 'conflict');
         }
         activeCell = null;
-        currentConflicts.clear();
         
-        // Выбираем первую клетку
-        setTimeout(() => {
-            if (grid.children[0]) {
-                handleCellClick(grid.children[0]);
-            }
-            isClearing = false;
-        }, 50);
+        isClearing = false;
     }
 
     // Обработчики событий
@@ -766,9 +699,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Проверяем доступность сервера
         console.log('🚀 Инициализация SUDO.RESH...');
-        console.log(`📱 Устройство: ${navigator.userAgent}`);
-        console.log(`📏 Размер экрана: ${window.innerWidth}x${window.innerHeight}`);
-        console.log(`⌨️ Клавиатура: ${keyboardVisible ? 'видима' : 'скрыта'}`);
         
         await checkServerAvailability();
         
@@ -781,7 +711,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('✅ SUDO.RESH инициализирован');
         console.log(`🔧 Режим: ${useServer ? 'Серверный' : 'Клиентский'}`);
-        console.log(`⌨️ Виртуальная клавиатура: ${keyboardVisible ? 'ВКЛ' : 'ВЫКЛ'}`);
     }
 
     init();
