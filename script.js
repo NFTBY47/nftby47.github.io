@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const grid = document.getElementById('sudokuGrid');
     const solveBtn = document.getElementById('solveBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const fallingNumbers = document.getElementById('fallingNumbers');
     const modal = document.getElementById('modal');
     const closeModal = document.getElementById('closeModal');
     const virtualKeyboard = document.getElementById('virtualKeyboard');
@@ -11,9 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const htmlElement = document.documentElement;
 
     // ============ КОНФИГУРАЦИЯ ============
-    // Ваш PythonAnywhere бэкенд
     const SERVER_URL = 'https://almorozov.pythonanywhere.com';
-    const SERVER_TIMEOUT = 5000; // 5 секунд для хостинга
+    const SERVER_TIMEOUT = 5000;
     
     let isSolving = false;
     let activeCell = null;
@@ -22,26 +20,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let isClearing = false;
     let conflictCheckTimeout = null;
     let currentConflicts = new Map();
-    let useServer = true; // Флаг использования сервера
+    let useServer = true;
     let keyboardVisible = false;
 
-    // ============ АДАПТИВНАЯ КЛАВИАТУРА ============
+    // ============ ВИРТУАЛЬНАЯ КЛАВИАТУРА ============
 
-    // Функция проверки необходимости показа клавиатуры
+    // Проверяем, нужно ли показывать клавиатуру
     function shouldShowKeyboard() {
         const width = window.innerWidth;
-        const height = window.innerHeight;
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        // Показываем виртуальную клавиатуру если:
-        // 1. Это мобильное устройство (ширина ≤ 767px)
-        // 2. Ширина окна меньше 1000px
-        // 3. Высота меньше 700px
-        // 4. Это телефон (соотношение сторон)
-        return isMobile || width <= 1000 || height <= 700 || width < height;
+        // Показываем на мобильных и узких экранах
+        return width <= 1200;
     }
 
-    // Функция показа/скрытия клавиатуры
+    // Показываем/скрываем клавиатуру
     function updateKeyboardVisibility() {
         const shouldShow = shouldShowKeyboard();
         
@@ -49,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
             virtualKeyboard.classList.add('show');
             keyboardVisible = true;
             
-            // На мобильных устройствах отключаем фокус на input
+            // На мобильных устройствах делаем input только для чтения
             if (window.innerWidth <= 767) {
                 document.querySelectorAll('.cell-input').forEach(input => {
                     input.readOnly = true;
@@ -57,65 +48,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            console.log(`⌨️ Виртуальная клавиатура: ВКЛ (${window.innerWidth}x${window.innerHeight})`);
+            console.log(`⌨️ Виртуальная клавиатура: ВКЛ (${window.innerWidth}px)`);
         } else {
             virtualKeyboard.classList.remove('show');
             keyboardVisible = false;
             
-            // Включаем фокус обратно на десктопах
+            // Включаем редактирование на десктопах
             document.querySelectorAll('.cell-input').forEach(input => {
                 input.readOnly = false;
                 input.style.caretColor = '';
             });
             
-            console.log(`⌨️ Виртуальная клавиатура: ВЫКЛ (${window.innerWidth}x${window.innerHeight})`);
+            console.log(`⌨️ Виртуальная клавиатура: ВЫКЛ (${window.innerWidth}px)`);
         }
     }
 
-    // Создаем виртуальную клавиатуру
-    function createVirtualKeyboard() {
-        virtualKeyboard.innerHTML = '';
-        
-        // Первый ряд: 1-5
-        const row1 = document.createElement('div');
-        row1.className = 'keyboard-row';
-        
-        for (let i = 1; i <= 5; i++) {
-            const btn = createNumberButton(i);
-            row1.appendChild(btn);
-        }
-        
-        // Второй ряд: 6-9 и удалить
-        const row2 = document.createElement('div');
-        row2.className = 'keyboard-row';
-        
-        for (let i = 6; i <= 9; i++) {
-            const btn = createNumberButton(i);
-            row2.appendChild(btn);
-        }
-        
-        // Кнопка удалить
-        const clearBtn = document.createElement('button');
-        clearBtn.className = 'number-btn clear-cell-btn';
-        clearBtn.dataset.number = '0';
-        clearBtn.textContent = '⌫';
-        clearBtn.addEventListener('click', handleVirtualKeyClick);
-        clearBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            handleVirtualKeyClick(e);
-        });
-        row2.appendChild(clearBtn);
-        
-        virtualKeyboard.appendChild(row1);
-        virtualKeyboard.appendChild(row2);
-        
-        // Добавляем обработчик touch для всех кнопок клавиатуры
+    // Настраиваем виртуальную клавиатуру
+    function setupVirtualKeyboard() {
+        // Вешаем обработчики на все кнопки клавиатуры
         virtualKeyboard.querySelectorAll('.number-btn').forEach(btn => {
+            btn.addEventListener('click', handleVirtualKeyClick);
             btn.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 this.style.transform = 'scale(0.9)';
             });
-            
             btn.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 this.style.transform = '';
@@ -129,19 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function createNumberButton(number) {
-        const btn = document.createElement('button');
-        btn.className = 'number-btn';
-        btn.dataset.number = number;
-        btn.textContent = number;
-        btn.addEventListener('click', handleVirtualKeyClick);
-        btn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-        });
-        return btn;
-    }
-
-    // Обработчик виртуальной клавиатуры
+    // Обработчик клика по кнопке клавиатуры
     function handleVirtualKeyClick(e) {
         if (isSolving || isClearing) return;
         
@@ -345,323 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ============ КЛИЕНТСКИЕ АЛГОРИТМЫ ============
-
-    // Проверка конфликтов для конкретной клетки (клиент)
-    function checkCellConflictsClient(cellIndex, board = null) {
-        if (!board) {
-            board = getBoard();
-        }
-        
-        const currentValue = board[cellIndex];
-        if (currentValue === 0) return [];
-        
-        const row = Math.floor(cellIndex / 9);
-        const col = cellIndex % 9;
-        const conflicts = [];
-        
-        // Проверка строки
-        for (let c = 0; c < 9; c++) {
-            const index = row * 9 + c;
-            if (index !== cellIndex && board[index] === currentValue) {
-                conflicts.push(index);
-            }
-        }
-        
-        // Проверка столбца
-        for (let r = 0; r < 9; r++) {
-            const index = r * 9 + col;
-            if (index !== cellIndex && board[index] === currentValue) {
-                conflicts.push(index);
-            }
-        }
-        
-        // Проверка блока 3x3
-        const startRow = Math.floor(row / 3) * 3;
-        const startCol = Math.floor(col / 3) * 3;
-        
-        for (let r = 0; r < 3; r++) {
-            for (let c = 0; c < 3; c++) {
-                const index = (startRow + r) * 9 + (startCol + c);
-                if (index !== cellIndex && board[index] === currentValue) {
-                    conflicts.push(index);
-                }
-            }
-        }
-        
-        return conflicts;
-    }
-
-    // Обновить конфликты для конкретной клетки и ВСЕХ связанных (клиент)
-    function updateCellAndRelatedConflicts(cellIndex) {
-        const board = getBoard();
-        
-        // Собираем ВСЕ клетки, которые нужно перепроверить
-        const cellsToCheck = new Set();
-        cellsToCheck.add(cellIndex);
-        
-        const row = Math.floor(cellIndex / 9);
-        const col = cellIndex % 9;
-        
-        // Добавляем всю строку
-        for (let c = 0; c < 9; c++) {
-            const index = row * 9 + c;
-            if (index !== cellIndex && board[index] !== 0) {
-                cellsToCheck.add(index);
-            }
-        }
-        
-        // Добавляем весь столбец
-        for (let r = 0; r < 9; r++) {
-            const index = r * 9 + col;
-            if (index !== cellIndex && board[index] !== 0) {
-                cellsToCheck.add(index);
-            }
-        }
-        
-        // Добавляем весь блок 3x3
-        const startRow = Math.floor(row / 3) * 3;
-        const startCol = Math.floor(col / 3) * 3;
-        for (let r = 0; r < 3; r++) {
-            for (let c = 0; c < 3; c++) {
-                const index = (startRow + r) * 9 + (startCol + c);
-                if (index !== cellIndex && board[index] !== 0) {
-                    cellsToCheck.add(index);
-                }
-            }
-        }
-        
-        // Удаляем старые конфликты для этих клеток
-        for (const index of cellsToCheck) {
-            removeCellFromConflicts(index);
-        }
-        
-        // Проверяем каждую клетку на новые конфликты
-        for (const index of cellsToCheck) {
-            if (board[index] !== 0) {
-                const conflicts = checkCellConflictsClient(index, board);
-                if (conflicts.length > 0) {
-                    // Сохраняем конфликты
-                    if (currentConflicts.has(index)) {
-                        const existingConflicts = currentConflicts.get(index);
-                        conflicts.forEach(conflictIndex => {
-                            if (!existingConflicts.includes(conflictIndex)) {
-                                existingConflicts.push(conflictIndex);
-                            }
-                        });
-                    } else {
-                        currentConflicts.set(index, conflicts);
-                    }
-                    
-                    // Подсвечиваем конфликтующую клетку
-                    const cell = grid.children[index];
-                    if (cell) {
-                        cell.classList.add('conflict');
-                    }
-                    
-                    // Добавляем обратные связи
-                    for (const conflictIndex of conflicts) {
-                        if (currentConflicts.has(conflictIndex)) {
-                            const existingConflicts = currentConflicts.get(conflictIndex);
-                            if (!existingConflicts.includes(index)) {
-                                existingConflicts.push(index);
-                            }
-                        } else {
-                            currentConflicts.set(conflictIndex, [index]);
-                        }
-                        
-                        // Подсвечиваем конфликтующую клетку
-                        const conflictCell = grid.children[conflictIndex];
-                        if (conflictCell) {
-                            conflictCell.classList.add('conflict');
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Очищаем пустые записи в currentConflicts
-        cleanupConflicts();
-    }
-
-    // Удалить клетку из всех конфликтов (клиент)
-    function removeCellFromConflicts(cellIndex) {
-        // Удаляем эту клетку как источник конфликтов
-        if (currentConflicts.has(cellIndex)) {
-            currentConflicts.delete(cellIndex);
-        }
-        
-        // Удаляем эту клетку из списков конфликтов других клеток
-        for (const [index, conflicts] of currentConflicts) {
-            const conflictIndex = conflicts.indexOf(cellIndex);
-            if (conflictIndex !== -1) {
-                conflicts.splice(conflictIndex, 1);
-            }
-        }
-        
-        // Убираем подсветку с этой клетки
-        const cell = grid.children[cellIndex];
-        if (cell) {
-            cell.classList.remove('conflict');
-        }
-    }
-
-    // Очистить пустые записи о конфликтах (клиент)
-    function cleanupConflicts() {
-        // Удаляем записи с пустыми массивами конфликтов
-        for (const [index, conflicts] of currentConflicts) {
-            if (conflicts.length === 0) {
-                currentConflicts.delete(index);
-            }
-        }
-        
-        // Убираем подсветку с клеток, которые больше не в конфликтах
-        for (let i = 0; i < 81; i++) {
-            if (!currentConflicts.has(i)) {
-                let hasConflict = false;
-                
-                // Проверяем, есть ли эта клетка в конфликтах других
-                for (const [, conflicts] of currentConflicts) {
-                    if (conflicts.includes(i)) {
-                        hasConflict = true;
-                        break;
-                    }
-                }
-                
-                if (!hasConflict) {
-                    const cell = grid.children[i];
-                    if (cell) {
-                        cell.classList.remove('conflict');
-                    }
-                }
-            }
-        }
-    }
-
-    // ============ СЕРВЕРНЫЕ АЛГОРИТМЫ ============
-
-    // Проверить конфликты на сервере
-    async function checkConflictsOnServer(board) {
-        if (!useServer) return null;
-        
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), SERVER_TIMEOUT);
-            
-            const response = await fetch(`${SERVER_URL}/check_conflicts`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ board: board }),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                const data = await response.json();
-                console.log('✅ Конфликты проверены сервером:', data.server);
-                return data;
-            } else {
-                console.warn('⚠️ Сервер вернул ошибку:', response.status);
-            }
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.warn('⏱️ Таймаут проверки конфликтов на сервере');
-            } else {
-                console.warn('⚠️ Не удалось проверить конфликты на сервере:', error.message);
-            }
-        }
-        
-        return null;
-    }
-
-    // Решить судоку на сервере
-    async function solveOnServer(board) {
-        if (!useServer) return null;
-        
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), SERVER_TIMEOUT);
-            
-            const response = await fetch(`${SERVER_URL}/solve`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ board: board }),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                const data = await response.json();
-                console.log('✅ Судоку решено сервером:', data.server, `(${data.time}ms)`);
-                return data;
-            } else {
-                const errorText = await response.text();
-                console.warn('⚠️ Сервер вернул ошибку:', response.status, errorText);
-            }
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.warn('⏱️ Таймаут решения на сервере');
-            } else {
-                console.warn('⚠️ Не удалось решить на сервере:', error.message);
-            }
-        }
-        
-        return null;
-    }
-
-    // ============ ОБЩИЕ ФУНКЦИИ ============
-
-    // Обновить конфликты (гибридная логика)
-    async function updateConflicts(cellIndex) {
-        const board = getBoard();
-        
-        if (useServer) {
-            // Пытаемся использовать сервер
-            const serverResult = await checkConflictsOnServer(board);
-            
-            if (serverResult && !serverResult.error) {
-                // Сервер ответил успешно
-                currentConflicts.clear();
-                
-                // Убираем все конфликты
-                document.querySelectorAll('.sudoku-cell').forEach(cell => {
-                    cell.classList.remove('conflict');
-                });
-                
-                // Применяем конфликты с сервера
-                if (serverResult.conflicts && serverResult.conflicts.length > 0) {
-                    serverResult.conflicts.forEach(conflictIndex => {
-                        const cell = grid.children[conflictIndex];
-                        if (cell) {
-                            cell.classList.add('conflict');
-                        }
-                    });
-                    
-                    // Сохраняем конфликты
-                    for (const conflictIndex of serverResult.conflicts) {
-                        const conflicts = checkCellConflictsClient(conflictIndex, board);
-                        if (conflicts.length > 0) {
-                            currentConflicts.set(conflictIndex, conflicts);
-                        }
-                    }
-                }
-                
-                return;
-            }
-        }
-        
-        // Если сервер недоступен или ошибка, используем клиентскую логику
-        updateCellAndRelatedConflicts(cellIndex);
-    }
-
     // Обработчик ввода
     function handleCellInput(input, e) {
         if (!/^[1-9]?$/.test(input.value)) {
@@ -709,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 0);
         }
         
-        // Навигация стрелками (только на десктопах)
+        // Навигация стрелками (только на десктопах без клавиатуры)
         if (!keyboardVisible && e.key.startsWith('Arrow')) {
             e.preventDefault();
             navigateGrid(e.key, index);
@@ -783,6 +410,62 @@ document.addEventListener('DOMContentLoaded', function() {
             board.push(input.value === '' ? 0 : parseInt(input.value));
         }
         return board;
+    }
+
+    // Проверка конфликтов (упрощенная)
+    async function updateConflicts(cellIndex) {
+        const board = getBoard();
+        const value = board[cellIndex];
+        
+        // Если клетка пустая - убираем конфликты
+        if (value === 0) {
+            grid.children[cellIndex].classList.remove('conflict');
+            return;
+        }
+        
+        const row = Math.floor(cellIndex / 9);
+        const col = cellIndex % 9;
+        
+        let hasConflict = false;
+        
+        // Проверка строки
+        for (let c = 0; c < 9; c++) {
+            const index = row * 9 + c;
+            if (index !== cellIndex && board[index] === value) {
+                hasConflict = true;
+                grid.children[index].classList.add('conflict');
+            }
+        }
+        
+        // Проверка столбца
+        for (let r = 0; r < 9; r++) {
+            const index = r * 9 + col;
+            if (index !== cellIndex && board[index] === value) {
+                hasConflict = true;
+                grid.children[index].classList.add('conflict');
+            }
+        }
+        
+        // Проверка блока 3x3
+        const startRow = Math.floor(row / 3) * 3;
+        const startCol = Math.floor(col / 3) * 3;
+        
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+                const index = (startRow + r) * 9 + (startCol + c);
+                if (index !== cellIndex && board[index] === value) {
+                    hasConflict = true;
+                    grid.children[index].classList.add('conflict');
+                }
+            }
+        }
+        
+        // Подсвечиваем саму клетку если есть конфликт
+        if (hasConflict) {
+            grid.children[cellIndex].classList.add('conflict');
+        } else {
+            grid.children[cellIndex].classList.remove('conflict');
+        }
     }
 
     // ============ КЛИЕНТСКИЙ РЕШАТЕЛЬ ============
@@ -947,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isSolving) return;
         
         // Проверяем конфликты перед решением
-        const hasConflicts = currentConflicts.size > 0;
+        const hasConflicts = document.querySelectorAll('.sudoku-cell.conflict').length > 0;
         if (hasConflicts) {
             showModal('Исправьте конфликты перед решением!', 'Конфликты обнаружены');
             return;
@@ -972,15 +655,33 @@ document.addEventListener('DOMContentLoaded', function() {
             // Пытаемся решить на сервере
             if (useServer) {
                 console.log('🌐 Попытка решения на сервере...');
-                const serverResult = await solveOnServer(originalBoard);
-                
-                if (serverResult && !serverResult.error && serverResult.solved) {
-                    // Сервер успешно решил
-                    solution = serverResult.board;
-                    solvedBy = serverResult.server || 'python';
-                    console.log(`✅ Сервер решил за ${serverResult.time}ms`);
-                } else if (serverResult && serverResult.error) {
-                    console.warn('⚠️ Ошибка сервера:', serverResult.message);
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), SERVER_TIMEOUT);
+                    
+                    const response = await fetch(`${SERVER_URL}/solve`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ board: originalBoard }),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (response.ok) {
+                        const serverResult = await response.json();
+                        if (serverResult && !serverResult.error && serverResult.solved) {
+                            // Сервер успешно решил
+                            solution = serverResult.board;
+                            solvedBy = serverResult.server || 'python';
+                            console.log(`✅ Сервер решил`);
+                        }
+                    }
+                } catch (serverError) {
+                    console.warn('⚠️ Ошибка сервера:', serverError.message);
                 }
             }
             
@@ -1043,43 +744,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 50);
     }
 
-    // Падающие цифры
-    function createFallingNumbers() {
-        const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        
-        fallingNumbers.innerHTML = '';
-        
-        for (let i = 0; i < 10; i++) {
-            createFallingNumber();
-        }
-        
-        setInterval(() => {
-            createFallingNumber();
-        }, 500);
-    }
-    
-    function createFallingNumber() {
-        const el = document.createElement('div');
-        el.className = 'falling-number';
-        el.textContent = nums[Math.floor(Math.random() * nums.length)];
-        el.style.left = Math.random() * 100 + 'vw';
-        el.style.animationDuration = (2 + Math.random() * 3) + 's';
-        el.style.fontSize = (12 + Math.random() * 6) + 'px';
-        el.style.opacity = 0;
-        
-        fallingNumbers.appendChild(el);
-        
-        setTimeout(() => {
-            el.style.opacity = 0.1;
-        }, 10);
-        
-        setTimeout(() => {
-            if (el.parentNode === fallingNumbers) {
-                fallingNumbers.removeChild(el);
-            }
-        }, 5000);
-    }
-
     // Обработчики событий
     solveBtn.addEventListener('click', solveSudoku);
     clearBtn.addEventListener('click', clearGrid);
@@ -1088,8 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация
     async function init() {
         createGrid();
-        createFallingNumbers();
-        createVirtualKeyboard();
+        setupVirtualKeyboard();
         initTheme();
         
         // Проверяем и обновляем видимость клавиатуры
