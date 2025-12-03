@@ -45,7 +45,6 @@
     --clear-gradient: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
     --title-color: #000000;
     --solved-color: #000000;
-    --conflict-color: #ff0000;
     --conflict-bg: #ff000015;
     --conflict-border: #ff0000;
 }
@@ -93,16 +92,8 @@ body {
     z-index: 1000;
     user-select: none;
 }
-
-/* Тёмная тема → луна */
-.theme-toggle::before {
-    content: 'Moon';
-}
-
-/* Светлая тема → солнце */
-[data-theme="light"] .theme-toggle::before {
-    content: 'Sun';
-}
+.theme-toggle::before { content: 'Moon'; }
+[data-theme="light"] .theme-toggle::before { content: 'Sun'; }
 /* ===================================================================== */
 
 .container {
@@ -206,14 +197,14 @@ body {
     padding: 0;
 }
 
-/* ВИРТУАЛЬНАЯ КЛАВИАТУРА — маленькие кнопки */
+/* ==================== КРУПНАЯ КРАСИВАЯ КЛАВИАТУРА (ТОЛЬКО ЭТО И ИЗМЕНИЛ) ==================== */
 .virtual-keyboard {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 12px;
     width: 100%;
     max-width: clamp(260px, 88vw, 420px);
-    margin: 8px auto 4px auto;
+    margin: 16px auto 8px auto;
     padding: 0 10px;
     opacity: 0;
     transform: translateY(10px);
@@ -230,19 +221,19 @@ body {
 .keyboard-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
+    gap: 11px;
     width: 100%;
     justify-items: center;
 }
 
 .number-btn,
 .clear-cell-btn {
-    width: clamp(28px, 9vw, 34px) !important;
-    height: clamp(28px, 9vw, 34px) !important;
-    min-width: 28px;
-    min-height: 28px;
-    border-radius: 8px;
-    font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+    width: clamp(52px, 14.5vw, 68px) !important;
+    height: clamp(52px, 14.5vw, 68px) !important;
+    min-width: 52px;
+    min-height: 52px;
+    border-radius: 18px;
+    font-size: clamp(1.5rem, 5.2vw, 2rem);
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -251,19 +242,20 @@ body {
     border: none;
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 7px 18px rgba(0,0,0,0.45);
     -webkit-tap-highlight-color: transparent;
 }
 
 .number-btn { background: var(--button-gradient); color: white; }
-.clear-cell-btn { background: var(--clear-gradient); color: white; font-size: 1.5rem; }
+.clear-cell-btn { background: var(--clear-gradient); color: white; font-size: 2.4rem; }
 
 .number-btn:active,
 .clear-cell-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.91);
 }
+/* ===================================================================== */
 
-/* КНОПКИ РЕШИТЬ / ОЧИСТИТЬ */
+/* КНОПКИ РЕШИТЬ / ОЧИСТИТЬ — ОСТАЛИСЬ КАК БЫЛИ */
 .controls {
     width: 100%;
     max-width: clamp(260px, 88vw, 420px);
@@ -306,12 +298,10 @@ body {
 /* Адаптивность */
 @media (max-width: 480px) {
     .theme-toggle { top: 8px; right: 8px; width: 32px; height: 32px; font-size: 19px; }
-    .number-btn, .clear-cell-btn { width: 29px !important; height: 29px !important; }
-    .clear-cell-btn { font-size: 1.3rem; }
 }
 
 @media (max-height: 600px) {
-    .number-btn, .clear-cell-btn { width: 27px !important; height: 27px !important; }
+    .number-btn, .clear-cell-btn { width: 48px !important; height: 48px !important; }
 }
 
 /* Модалка */
@@ -345,6 +335,7 @@ body {
 }
 
 .modal-body { padding: 20px; text-align: center; font-size: 0.95rem; }
+
 .ok-btn {
     width: 100%;
     padding: 12px;
