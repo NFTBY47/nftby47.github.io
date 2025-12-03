@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let isSolving = false;
     let activeCell = null;
-    let solutionAnimationSpeed = 20; // Одинаковая скорость анимации везде
+    let solutionAnimationSpeed = 20;
     let currentTheme = localStorage.getItem('theme') || 'dark';
     let isClearing = false;
     let conflictCheckTimeout = null;
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const width = window.innerWidth;
         const height = window.innerHeight;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        return isMobile || width <= 767; // Показывать только на мобильных или очень маленьких экранах
+        return isMobile || width <= 767;
     }
 
     function updateKeyboardVisibility() {
@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
             virtualKeyboard.classList.add('show');
             keyboardVisible = true;
             
-            // Только на мобильных (width <= 767) блокируем ввод
             const readOnly = window.innerWidth <= 767;
             document.querySelectorAll('.cell-input').forEach(input => {
                 input.readOnly = readOnly;
