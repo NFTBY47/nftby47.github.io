@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUDO.RESH</title>
+    <title>SUDO.RESH - Алгоритмический решатель судоку</title>
     
     <!-- Иконка сайта -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23333'/><text x='16' y='22' font-family='monospace' font-size='16' text-anchor='middle' fill='white'>9</text></svg>">
@@ -13,54 +13,49 @@
 <body>
     <div class="falling-numbers" id="fallingNumbers"></div>
     
-    <!-- Модальное окно для ошибок -->
+    <!-- Кнопка темы в правом верхнем углу -->
+    <div class="theme-toggle" id="themeToggle" title="Переключить тему"></div>
+    
+    <!-- Модальное окно ТОЛЬКО ДЛЯ ОШИБОК -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">Ошибка</div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="modalMessage">
                 Судоку не имеет решения
             </div>
             <div class="modal-footer">
-                <button class="ok-btn" id="closeModal">Хорошо</button>
+                <button class="ok-btn" id="closeModal">Понятно</button>
             </div>
         </div>
     </div>
     
     <div class="container">
-        <h1 class="title">SUDO.RESH</h1>
-        <p class="subtitle">Алгоритмический решатель судоку</p>
-        
-        <div class="sudoku-platform">
-            <div class="sudoku-grid" id="sudokuGrid"></div>
+        <div class="header">
+            <div class="title-container">
+                <h1 class="title">SUDO.RESH</h1>
+                <p class="subtitle">Алгоритмический решатель судоку</p>
+            </div>
         </div>
         
-        <!-- Виртуальная клавиатура для мобильных устройств -->
+        <div class="sudoku-platform">
+            <div class="sudoku-grid" id="sudokuGrid">
+                <!-- Клетки будут созданы -->
+            </div>
+        </div>
+        
+        <!-- Виртуальная клавиатура -->
         <div class="virtual-keyboard" id="virtualKeyboard">
-            <div class="keyboard-row">
-                <button class="number-btn" data-number="1">1</button>
-                <button class="number-btn" data-number="2">2</button>
-                <button class="number-btn" data-number="3">3</button>
-                <button class="number-btn" data-number="4">4</button>
-                <button class="number-btn" data-number="5">5</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="number-btn" data-number="6">6</button>
-                <button class="number-btn" data-number="7">7</button>
-                <button class="number-btn" data-number="8">8</button>
-                <button class="number-btn" data-number="9">9</button>
-                <button class="number-btn clear-cell-btn" data-number="0">⌫</button>
-            </div>
+            <!-- Кнопки будут созданы -->
         </div>
         
         <div class="controls">
             <div class="buttons-row">
                 <button class="solve-btn" id="solveBtn">Решить</button>
-                <button class="clear-btn" id="clearBtn">Очистить поле</button>
+                <button class="clear-btn" id="clearBtn">Очистить</button>
             </div>
         </div>
-
         
         <div class="signature">create by A. Morozov, V. Sterligov</div>
     </div>
