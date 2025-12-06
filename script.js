@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Навигация по сетки
+    // Навигация по сетке
     function navigateGrid(direction, currentIndex) {
         let newIndex = currentIndex;
         
@@ -395,7 +395,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Проверяем конфликты
             setTimeout(() => checkConflicts(), 50);
             
-            // Автоматически переходим к следующей ячейке (опционально)
+            // ⚠️ ВАЖНОЕ ИСПРАВЛЕНИЕ: УБРАЛИ АВТОМАТИЧЕСКИЙ ПЕРЕХОД К СЛЕДУЮЩЕЙ ЯЧЕЙКЕ
+            // Пользователь сам выбирает следующую ячейку кликом/тапом
+            // Код ниже был удален:
+            /*
             if (number !== '0' && activeCell) {
                 const currentIndex = parseInt(activeCell.dataset.index);
                 if (currentIndex < 80) {
@@ -407,6 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 100);
                 }
             }
+            */
         } else {
             // Если всё ещё нет активной ячейки, показываем подсказку
             showModal('Сначала выберите ячейку тапом', 'Подсказка');
@@ -570,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // Анимация решения
+    // Анимация решения (красивая как тополя)
     async function animateSolution(solution, source = 'javascript') {
         const originalBoard = getBoard();
         
@@ -637,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация приложения
     async function init() {
         createGrid();
-        setupVirtualKeyboard(); // Важно: вызывать после createGrid
+        setupVirtualKeyboard();
         initTheme();
         updateKeyboardVisibility();
         
