@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTheme = localStorage.getItem('theme') || 'dark';
     let currentConflicts = new Map();
     let useServer = true;
-    let keyboardVisible = false;
+    let isMobile = window.innerWidth <= 767;
 
     // Проверка доступности сервера
     async function checkServerAvailability() {
@@ -49,8 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function initTheme() {
         htmlElement.setAttribute('data-theme', currentTheme);
         localStorage.setItem('theme', currentTheme);
-        
-        // Обновляем иконку темы
         themeToggle.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
     }
 
@@ -58,31 +56,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleTheme() {
         currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
         initTheme();
-        
         themeToggle.style.transform = 'scale(0.9)';
-        setTimeout(() => {
-            themeToggle.style.transform = 'scale(1)';
-        }, 150);
+        setTimeout(() => themeToggle.style.transform = 'scale(1)', 150);
     }
 
     // Показать модальное окно
     function showModal(message = 'Судоку не имеет решения', title = 'Ошибка') {
         modalMessage.textContent = message;
         modal.querySelector('.modal-title').textContent = title;
-        modal.style.display = 'flex';
-        
-        // Добавляем класс для анимации
-        setTimeout(() => {
-            modal.classList.add('show');
-        }, 10);
+        modal.classList.add('show');
     }
 
     // Скрыть модальное окно
     function hideModal() {
         modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
     }
 
     // Создание сетки
@@ -96,18 +83,33 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const input = document.createElement('input');
             input.type = 'text';
-            input.inputMode = 'numeric';
+            input.inputMode = 'none';
             input.maxLength = 1;
             input.className = 'cell-input';
             input.dataset.index = i;
+            input.autocomplete = 'off';
+            input.autocorrect = 'off';
+            input.autocapitalize = 'off';
+            input.spellcheck = false;
             
             cell.appendChild(input);
             
-            // Обработчики событий
-            cell.addEventListener('click', () => handleCellClick(cell));
-            input.addEventListener('focus', () => handleCellClick(cell));
+            // Обработчики событий - только один тип событий в зависимости от устройства
+            if (isMobile) {
+                cell.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    handleCellClick(cell);
+                }, { passive: false });
+            } else {
+                cell.addEventListener('click', () => handleCellClick(cell));
+                input.addEventListener('focus', () => handleCellClick(cell));
+            }
+            
             input.addEventListener('input', (e) => handleCellInput(e.target));
-            input.addEventListener('keydown', (e) => handleCellKeydown(e.target, e));
+            
+            if (!isMobile) {
+                input.addEventListener('keydown', (e) => handleCellKeydown(e.target, e));
+            }
             
             grid.appendChild(cell);
         }
@@ -117,17 +119,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleCellClick(cell) {
         if (isSolving) return;
         
-        // Убираем активность со всех ячеек
         document.querySelectorAll('.sudoku-cell').forEach(c => {
             c.classList.remove('active');
         });
         
-        // Активируем текущую ячейку
         cell.classList.add('active');
         activeCell = cell;
         
-        // Если клавиатура не видна, фокусируемся на инпуте
-        if (!keyboardVisible) {
+        if (!isMobile) {
             const input = cell.querySelector('.cell-input');
             input.focus();
         }
@@ -137,58 +136,46 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleCellInput(input) {
         if (isSolving) return;
         
-        // Разрешаем только цифры 1-9
         if (!/^[1-9]?$/.test(input.value)) {
             input.value = '';
         } else if (input.value !== '') {
             input.parentElement.classList.add('user-input');
-            input.parentElement.classList.remove('solved');
+            input.parentElement.classList.remove('solved', 'solved-animation');
         }
         
-        // Проверяем конфликты
         setTimeout(() => checkConflicts(), 50);
     }
 
-    // Обработчик нажатия клавиш
+    // Обработчик нажатия клавиш (только для ПК)
     function handleCellKeydown(input, e) {
         if (isSolving) return;
         
-        if (keyboardVisible && window.innerWidth <= 768) {
-            e.preventDefault();
-            return;
-        }
-        
         const index = parseInt(input.parentElement.dataset.index);
         
-        // Управление стрелками
         if (e.key.startsWith('Arrow')) {
             e.preventDefault();
             navigateGrid(e.key, index);
         }
         
-        // Ввод цифр
         if (/^[1-9]$/.test(e.key)) {
             e.preventDefault();
             input.value = e.key;
             input.parentElement.classList.add('user-input');
-            input.parentElement.classList.remove('solved');
+            input.parentElement.classList.remove('solved', 'solved-animation');
             setTimeout(() => checkConflicts(), 50);
         }
         
-        // Удаление
         if (e.key === 'Backspace' || e.key === 'Delete') {
             input.value = '';
-            input.parentElement.classList.remove('user-input', 'solved');
+            input.parentElement.classList.remove('user-input', 'solved', 'solved-animation');
             setTimeout(() => checkConflicts(), 50);
         }
         
-        // Enter для решения
         if (e.key === 'Enter') {
             e.preventDefault();
             solveSudoku();
         }
         
-        // Escape для отмены
         if (e.key === 'Escape') {
             if (activeCell) {
                 activeCell.classList.remove('active');
@@ -197,76 +184,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Навигация по сетке
+    // Навигация по сетки
     function navigateGrid(direction, currentIndex) {
         let newIndex = currentIndex;
         
         switch(direction) {
-            case 'ArrowUp':
-                newIndex = currentIndex - 9;
-                if (newIndex < 0) newIndex += 81;
+            case 'ArrowUp': newIndex = currentIndex - 9; if (newIndex < 0) newIndex += 81; break;
+            case 'ArrowDown': newIndex = currentIndex + 9; if (newIndex >= 81) newIndex -= 81; break;
+            case 'ArrowLeft': 
+                newIndex = currentIndex - 1; 
+                if (Math.floor(newIndex / 9) !== Math.floor(currentIndex / 9)) newIndex = currentIndex + 8; 
                 break;
-            case 'ArrowDown':
-                newIndex = currentIndex + 9;
-                if (newIndex >= 81) newIndex -= 81;
-                break;
-            case 'ArrowLeft':
-                newIndex = currentIndex - 1;
-                if (Math.floor(newIndex / 9) !== Math.floor(currentIndex / 9)) {
-                    newIndex = currentIndex + 8;
-                }
-                break;
-            case 'ArrowRight':
-                newIndex = currentIndex + 1;
-                if (Math.floor(newIndex / 9) !== Math.floor(currentIndex / 9)) {
-                    newIndex = currentIndex - 8;
-                }
+            case 'ArrowRight': 
+                newIndex = currentIndex + 1; 
+                if (Math.floor(newIndex / 9) !== Math.floor(currentIndex / 9)) newIndex = currentIndex - 8; 
                 break;
         }
         
         if (newIndex >= 0 && newIndex < 81) {
             const newCell = grid.children[newIndex];
             handleCellClick(newCell);
-            
-            if (!keyboardVisible) {
-                const input = newCell.querySelector('.cell-input');
-                input.focus();
-            }
+            if (!isMobile) newCell.querySelector('.cell-input').focus();
         }
     }
 
     // Получение текущего состояния доски
     function getBoard() {
         const board = [];
-        
         for (let i = 0; i < 81; i++) {
             const cell = grid.children[i];
             const input = cell.querySelector('.cell-input');
             const value = input.value.trim();
             board.push(value === '' ? 0 : parseInt(value, 10));
         }
-        
         return board;
     }
 
     // Проверка валидности числа
     function isValid(board, row, col, num) {
-        for (let x = 0; x < 9; x++) {
-            if (board[row * 9 + x] === num) return false;
-        }
-        
-        for (let y = 0; y < 9; y++) {
-            if (board[y * 9 + col] === num) return false;
-        }
+        for (let x = 0; x < 9; x++) if (board[row * 9 + x] === num) return false;
+        for (let y = 0; y < 9; y++) if (board[y * 9 + col] === num) return false;
         
         const startRow = Math.floor(row / 3) * 3;
         const startCol = Math.floor(col / 3) * 3;
-        
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
+        for (let i = 0; i < 3; i++) 
+            for (let j = 0; j < 3; j++) 
                 if (board[(startRow + i) * 9 + (startCol + j)] === num) return false;
-            }
-        }
         
         return true;
     }
@@ -276,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const board = getBoard();
         currentConflicts.clear();
         
-        // Убираем все конфликты
         document.querySelectorAll('.sudoku-cell').forEach(cell => {
             cell.classList.remove('conflict');
         });
@@ -287,19 +249,16 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let col = 0; col < 9; col++) {
                 const index = row * 9 + col;
                 const value = board[index];
-                if (value !== 0) {
-                    if (seen.has(value)) {
-                        // Помечаем все одинаковые числа в строке
-                        for (let c = 0; c < 9; c++) {
-                            const idx = row * 9 + c;
-                            if (board[idx] === value) {
-                                currentConflicts.set(idx, true);
-                                grid.children[idx].classList.add('conflict');
-                            }
+                if (value !== 0 && seen.has(value)) {
+                    for (let c = 0; c < 9; c++) {
+                        const idx = row * 9 + c;
+                        if (board[idx] === value) {
+                            currentConflicts.set(idx, true);
+                            grid.children[idx].classList.add('conflict');
                         }
                     }
-                    seen.add(value);
                 }
+                seen.add(value);
             }
         }
         
@@ -309,19 +268,16 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let row = 0; row < 9; row++) {
                 const index = row * 9 + col;
                 const value = board[index];
-                if (value !== 0) {
-                    if (seen.has(value)) {
-                        // Помечаем все одинаковые числа в столбце
-                        for (let r = 0; r < 9; r++) {
-                            const idx = r * 9 + col;
-                            if (board[idx] === value) {
-                                currentConflicts.set(idx, true);
-                                grid.children[idx].classList.add('conflict');
-                            }
+                if (value !== 0 && seen.has(value)) {
+                    for (let r = 0; r < 9; r++) {
+                        const idx = r * 9 + col;
+                        if (board[idx] === value) {
+                            currentConflicts.set(idx, true);
+                            grid.children[idx].classList.add('conflict');
                         }
                     }
-                    seen.add(value);
                 }
+                seen.add(value);
             }
         }
         
@@ -336,106 +292,146 @@ document.addEventListener('DOMContentLoaded', function() {
                         const index = row * 9 + col;
                         const value = board[index];
                         
-                        if (value !== 0) {
-                            if (seen.has(value)) {
-                                // Помечаем все одинаковые числа в блоке
-                                for (let x = 0; x < 3; x++) {
-                                    for (let y = 0; y < 3; y++) {
-                                        const r = blockRow * 3 + x;
-                                        const c = blockCol * 3 + y;
-                                        const idx = r * 9 + c;
-                                        if (board[idx] === value) {
-                                            currentConflicts.set(idx, true);
-                                            grid.children[idx].classList.add('conflict');
-                                        }
+                        if (value !== 0 && seen.has(value)) {
+                            for (let x = 0; x < 3; x++) {
+                                for (let y = 0; y < 3; y++) {
+                                    const r = blockRow * 3 + x;
+                                    const c = blockCol * 3 + y;
+                                    const idx = r * 9 + c;
+                                    if (board[idx] === value) {
+                                        currentConflicts.set(idx, true);
+                                        grid.children[idx].classList.add('conflict');
                                     }
                                 }
                             }
-                            seen.add(value);
                         }
+                        seen.add(value);
                     }
                 }
             }
         }
     }
 
-    // Настройка виртуальной клавиатуры
+    // Настройка виртуальной клавиатуры (ИСПРАВЛЕННАЯ ВЕРСИЯ)
     function setupVirtualKeyboard() {
-        virtualKeyboard.querySelectorAll('.number-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (isSolving) return;
+        const buttons = virtualKeyboard.querySelectorAll('.number-btn, .clear-cell-btn');
+        
+        buttons.forEach(btn => {
+            // Клонируем кнопку для удаления старых обработчиков
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            // ГЛАВНОЕ ИСПРАВЛЕНИЕ: ВСЕГДА добавляем обработчик click
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleVirtualKeyPress(newBtn);
                 
-                e.preventDefault();
-                const number = btn.dataset.number;
+                // Визуальная обратная связь
+                newBtn.style.transform = 'scale(0.94)';
+                newBtn.style.opacity = '0.9';
+                setTimeout(() => {
+                    newBtn.style.transform = '';
+                    newBtn.style.opacity = '1';
+                }, 150);
+            });
+            
+            // Для мобильных устройств добавляем touch события для лучшей реакции
+            if (isMobile) {
+                newBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Немедленная реакция на касание
+                    handleVirtualKeyPress(newBtn);
+                    newBtn.style.transform = 'scale(0.94)';
+                    newBtn.style.opacity = '0.9';
+                }, { passive: false });
                 
-                if (activeCell) {
-                    const input = activeCell.querySelector('.cell-input');
-                    
-                    if (number === '0') {
-                        // Удаление
-                        input.value = '';
-                        activeCell.classList.remove('user-input', 'solved');
-                    } else {
-                        // Ввод цифры
-                        input.value = number;
-                        activeCell.classList.add('user-input');
-                        activeCell.classList.remove('solved');
-                    }
-                    
-                    // Анимация нажатия
-                    btn.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        btn.style.transform = '';
-                    }, 150);
-                    
-                    // Проверяем конфликты
-                    setTimeout(() => checkConflicts(), 50);
-                }
-            });
-            
-            // Touch события для мобилок
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                btn.style.opacity = '0.7';
-                btn.style.transform = 'scale(0.95)';
-            });
-            
-            btn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                btn.style.opacity = '1';
-                btn.style.transform = '';
-            });
-            
-            btn.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                btn.style.opacity = '1';
-                btn.style.transform = '';
-            });
+                newBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    newBtn.style.transform = '';
+                    newBtn.style.opacity = '1';
+                }, { passive: false });
+                
+                newBtn.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    newBtn.style.transform = '';
+                    newBtn.style.opacity = '1';
+                }, { passive: false });
+                
+                // Предотвращаем контекстное меню
+                newBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
         });
+    }
+
+    // Обработчик нажатия на виртуальную клавиатуру (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+    function handleVirtualKeyPress(btn) {
+        if (isSolving) return;
+        
+        const number = btn.dataset.number;
+        
+        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Если нет активной ячейки, выбираем первую
+        if (!activeCell) {
+            const firstCell = grid.children[0];
+            if (firstCell) {
+                handleCellClick(firstCell);
+            }
+        }
+        
+        if (activeCell) {
+            const input = activeCell.querySelector('.cell-input');
+            
+            if (number === '0') {
+                input.value = '';
+                activeCell.classList.remove('user-input', 'solved', 'solved-animation');
+            } else {
+                input.value = number;
+                activeCell.classList.add('user-input');
+                activeCell.classList.remove('solved', 'solved-animation');
+            }
+            
+            // Проверяем конфликты
+            setTimeout(() => checkConflicts(), 50);
+            
+            // Автоматически переходим к следующей ячейке (опционально)
+            if (number !== '0' && activeCell) {
+                const currentIndex = parseInt(activeCell.dataset.index);
+                if (currentIndex < 80) {
+                    setTimeout(() => {
+                        const nextCell = grid.children[currentIndex + 1];
+                        if (nextCell) {
+                            handleCellClick(nextCell);
+                        }
+                    }, 100);
+                }
+            }
+        } else {
+            // Если всё ещё нет активной ячейки, показываем подсказку
+            showModal('Сначала выберите ячейку тапом', 'Подсказка');
+        }
     }
 
     // Обновление видимости клавиатуры
     function updateKeyboardVisibility() {
-        const width = window.innerWidth;
-        const isMobile = width <= 767; // Показываем только на мобилках
+        isMobile = window.innerWidth <= 767;
         
         if (isMobile) {
             virtualKeyboard.classList.add('show');
-            keyboardVisible = true;
-            
-            // Делаем инпуты readOnly чтобы не показывалась системная клавиатура
+            // Делаем инпуты неактивными для системной клавиатуры
             document.querySelectorAll('.cell-input').forEach(input => {
                 input.readOnly = true;
-                input.setAttribute('inputmode', 'none');
+                input.inputMode = 'none';
             });
+            
+            // Переинициализируем клавиатуру при изменении размера
+            setTimeout(() => setupVirtualKeyboard(), 100);
         } else {
             virtualKeyboard.classList.remove('show');
-            keyboardVisible = false;
-            
-            // Возвращаем возможность ввода с клавиатуры
             document.querySelectorAll('.cell-input').forEach(input => {
                 input.readOnly = false;
-                input.setAttribute('inputmode', 'numeric');
+                input.inputMode = 'numeric';
             });
         }
     }
@@ -444,13 +440,11 @@ document.addEventListener('DOMContentLoaded', function() {
     async function solveSudoku() {
         if (isSolving) return;
         
-        // Проверяем наличие конфликтов
         if (currentConflicts.size > 0) {
             showModal('Исправьте конфликты перед решением!', 'Конфликты обнаружены');
             return;
         }
         
-        // Проверяем, есть ли введенные цифры
         const board = getBoard();
         const hasInput = board.some(cell => cell !== 0);
         
@@ -467,7 +461,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let solution = null;
             let solvedBy = 'javascript';
             
-            // Пытаемся решить на сервере
             if (useServer) {
                 try {
                     const controller = new AbortController();
@@ -487,7 +480,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (result.solved && result.board) {
                             solution = result.board;
                             solvedBy = result.server || 'python';
-                            console.log('✅ Решено на сервере');
                         }
                     }
                 } catch (error) {
@@ -495,12 +487,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Если сервер не сработал, решаем на клиенте
             if (!solution) {
                 const clientSolution = solveClient(board);
                 if (clientSolution.solved) {
                     solution = clientSolution.board;
-                    console.log('✅ Решено на клиенте');
                 } else {
                     showModal(clientSolution.message, 'Ошибка');
                     isSolving = false;
@@ -510,7 +500,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Анимация решения
             await animateSolution(solution, solvedBy);
             
         } catch (error) {
@@ -527,7 +516,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function solveClient(board) {
         const boardCopy = [...board];
         
-        // Проверяем на валидность
         for (let i = 0; i < 81; i++) {
             if (boardCopy[i] !== 0) {
                 const row = Math.floor(i / 9);
@@ -543,7 +531,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Решаем
         const solved = solveSudokuRecursive(boardCopy);
         
         return {
@@ -555,7 +542,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Рекурсивное решение
     function solveSudokuRecursive(board) {
-        // Ищем пустую ячейку
         let emptyIndex = -1;
         for (let i = 0; i < 81; i++) {
             if (board[i] === 0) {
@@ -564,13 +550,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Если нет пустых ячеек - судоку решено
         if (emptyIndex === -1) return true;
         
         const row = Math.floor(emptyIndex / 9);
         const col = emptyIndex % 9;
         
-        // Пробуем цифры от 1 до 9
         for (let num = 1; num <= 9; num++) {
             if (isValid(board, row, col, num)) {
                 board[emptyIndex] = num;
@@ -579,7 +563,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return true;
                 }
                 
-                // Откат
                 board[emptyIndex] = 0;
             }
         }
@@ -596,23 +579,36 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 0; i < 81; i++) {
             if (originalBoard[i] === 0 && solution[i] !== 0) {
                 const cell = grid.children[i];
-                cellsToSolve.push({ cell: cell, index: i });
+                const row = Math.floor(i / 9);
+                const col = i % 9;
+                // Вычисляем расстояние от центра для порядка анимации
+                const distanceFromCenter = Math.sqrt(
+                    Math.pow(row - 4, 2) + Math.pow(col - 4, 2)
+                );
+                cellsToSolve.push({ 
+                    cell: cell, 
+                    index: i, 
+                    distance: distanceFromCenter 
+                });
             }
         }
         
-        // Заполняем с анимацией
+        // Сортируем по расстоянию от центра (ближе к центру -> дальше)
+        cellsToSolve.sort((a, b) => a.distance - b.distance);
+        
+        // Анимация заполнения
         for (let i = 0; i < cellsToSolve.length; i++) {
             if (!isSolving) break;
             
             const { cell, index } = cellsToSolve[i];
             const input = cell.querySelector('.cell-input');
             
-            // Небольшая задержка для анимации
-            await new Promise(resolve => setTimeout(resolve, 20));
+            // Задержка для красивого эффекта "волны"
+            await new Promise(resolve => setTimeout(resolve, 35));
             
             input.value = solution[index];
-            cell.classList.add('solved');
             cell.classList.remove('user-input', 'conflict');
+            cell.classList.add('solved', 'solved-animation');
         }
         
         console.log(`✅ Судоку решено (${source})`);
@@ -627,27 +623,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const input = cell.querySelector('.cell-input');
             
             input.value = '';
-            cell.classList.remove('user-input', 'solved', 'active', 'conflict');
+            cell.classList.remove('user-input', 'solved', 'solved-animation', 'active', 'conflict');
         }
         
         activeCell = null;
         currentConflicts.clear();
         
-        // Активируем первую ячейку
         setTimeout(() => {
-            if (grid.children[0]) {
-                handleCellClick(grid.children[0]);
-            }
+            if (grid.children[0]) handleCellClick(grid.children[0]);
         }, 50);
     }
 
     // Инициализация приложения
     async function init() {
         createGrid();
-        setupVirtualKeyboard();
+        setupVirtualKeyboard(); // Важно: вызывать после createGrid
         initTheme();
-        
-        // Настройка видимости клавиатуры
         updateKeyboardVisibility();
         
         // Обработчики событий
@@ -661,17 +652,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (modal.style.display === 'flex') {
-                    hideModal();
-                } else if (activeCell) {
-                    activeCell.classList.remove('active');
-                    activeCell = null;
-                }
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                hideModal();
             }
             
-            // Горячие клавиши (только если модальное окно не открыто)
-            if (e.ctrlKey && modal.style.display !== 'flex') {
+            if (e.ctrlKey && !modal.classList.contains('show')) {
                 switch(e.key) {
                     case 'r':
                         e.preventDefault();
@@ -689,24 +674,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Обновляем видимость клавиатуры при изменении размера
         window.addEventListener('resize', updateKeyboardVisibility);
         window.addEventListener('orientationchange', () => {
             setTimeout(updateKeyboardVisibility, 100);
         });
         
-        // Проверка сервера
         await checkServerAvailability();
         
-        // Активируем первую ячейку
         setTimeout(() => {
-            if (grid.children[0]) {
-                handleCellClick(grid.children[0]);
-            }
+            if (grid.children[0]) handleCellClick(grid.children[0]);
         }, 100);
         
         console.log('🚀 SUDO.RESH запущен');
         console.log(`🔧 Режим: ${useServer ? 'Серверный' : 'Клиентский'}`);
+        console.log(`📱 Устройство: ${isMobile ? 'Мобильное' : 'Десктоп'}`);
     }
 
     // Запуск
