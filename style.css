@@ -16,7 +16,9 @@
     --button-gradient: linear-gradient(135deg, #70a1ff 0%, #5352ed 100%);
     --clear-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
     --title-color: #ffffff;
-    --solved-color: #4a90e2;
+    /* ИСПРАВЛЕНИЕ: цвета ввода и решения */
+    --user-input-color: #70a1ff;  /* СИНИЙ для пользовательского ввода */
+    --solved-color: #4CAF50;       /* ЗЕЛЕНЫЙ для решения программы */
     --conflict-color: #ff4444;
     --conflict-bg: rgba(255, 68, 68, 0.1);
     --conflict-border: #ff4444;
@@ -40,7 +42,9 @@
     --button-gradient: linear-gradient(135deg, #4a6fff 0%, #3a5fdf 100%);
     --clear-gradient: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
     --title-color: #000000;
-    --solved-color: #2e7d32;
+    /* ИСПРАВЛЕНИЕ: цвета ввода и решения (одинаковые в обеих темах) */
+    --user-input-color: #4a6fff;   /* СИНИЙ для пользовательского ввода */
+    --solved-color: #2E7D32;       /* ЗЕЛЕНЫЙ для решения программы */
     --conflict-bg: rgba(255, 68, 68, 0.15);
     --conflict-border: #ff4444;
 }
@@ -50,6 +54,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'JetBrains Mono', monospace;
+    -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -67,6 +72,7 @@ body {
     align-items: center;
     padding: 0;
     margin: 0;
+    touch-action: manipulation;
 }
 
 /* Кнопка темы */
@@ -87,10 +93,15 @@ body {
     font-size: 20px;
     z-index: 1000;
     transition: transform 0.2s ease;
+    user-select: none;
 }
 
 .theme-toggle:hover {
     transform: scale(1.05);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
 }
 
 /* Контейнер */
@@ -104,7 +115,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 60px 16px 30px;
-    gap: 16px;
+    gap: 20px;
     overflow: hidden;
 }
 
@@ -143,7 +154,7 @@ body {
     background: var(--card-bg);
     border-radius: 12px;
     padding: 12px;
-    box-shadow: 0 6px 20px var(--shadow-color);
+    box-shadow: 0 8px 32px var(--shadow-color);
     border: 1px solid var(--border-color);
     width: 100%;
     max-width: 400px;
@@ -173,7 +184,7 @@ body {
     border: 1px solid var(--border-color);
     user-select: none;
     position: relative;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .sudoku-cell.active {
@@ -198,20 +209,17 @@ body {
     border-bottom: 2px solid var(--border-color);
 }
 
+/* ИСПРАВЛЕНИЕ: цвет пользовательского ввода - СИНИЙ без фона */
 .sudoku-cell.user-input {
-    color: var(--accent-color);
+    color: var(--user-input-color) !important;
     font-weight: 700;
+    /* Фон убран */
 }
 
+/* ИСПРАВЛЕНИЕ: цвет решенных программой - ЗЕЛЕНЫЙ */
 .sudoku-cell.solved {
-    color: var(--solved-color);
+    color: var(--solved-color) !important;
     font-weight: 700;
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
 }
 
 .cell-input {
@@ -229,41 +237,57 @@ body {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    caret-color: transparent;
+}
+
+/* Анимация заполнения ячеек (как тополя) */
+@keyframes solveAnimation {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) rotate(-5deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05) rotate(0deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.sudoku-cell.solved-animation {
+    animation: solveAnimation 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
 
 /* Виртуальная клавиатура - СКРЫТА ПО УМОЛЧАНИЮ */
 .virtual-keyboard {
     display: none;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
     max-width: 400px;
     padding: 0 8px;
     flex-shrink: 0;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .virtual-keyboard.show {
     display: flex;
-    opacity: 1;
-    transform: translateY(0);
 }
 
 .keyboard-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+    gap: 12px;
     width: 100%;
 }
 
 .number-btn,
 .clear-cell-btn {
     width: 100%;
-    height: 50px;
-    border-radius: 12px;
-    font-size: 1.3rem;
+    height: 55px;
+    border-radius: 14px;
+    font-size: 1.4rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -272,8 +296,10 @@ body {
     border: none;
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    user-select: none;
+    touch-action: manipulation;
+    position: relative;
 }
 
 .number-btn {
@@ -284,12 +310,12 @@ body {
 .clear-cell-btn {
     background: var(--clear-gradient);
     color: white;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
 }
 
 .number-btn:active,
 .clear-cell-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.94);
 }
 
 /* Контролы */
@@ -301,23 +327,24 @@ body {
 
 .buttons-row {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     justify-content: center;
 }
 
 .solve-btn,
 .clear-btn {
     flex: 1;
-    padding: 14px 0;
+    padding: 16px 0;
     font-size: 1rem;
     font-weight: 700;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
     color: white;
-    min-height: 50px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    min-height: 55px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    user-select: none;
 }
 
 .solve-btn {
@@ -331,7 +358,12 @@ body {
 .solve-btn:hover,
 .clear-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.solve-btn:active,
+.clear-btn:active {
+    transform: translateY(0);
 }
 
 .solve-btn:disabled {
@@ -357,65 +389,83 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.85);
     z-index: 2000;
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 16px;
-    backdrop-filter: blur(4px);
+    padding: 20px;
+    backdrop-filter: blur(5px);
 }
 
 .modal.show {
     display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal-content {
     background: var(--modal-bg);
-    border-radius: 16px;
+    border-radius: 18px;
     width: 100%;
-    max-width: 320px;
+    max-width: 340px;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
     border: 1px solid var(--border-color);
+    transform: translateY(20px);
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slideUp {
+    to {
+        transform: translateY(0);
+    }
 }
 
 .modal-header {
     background: var(--button-gradient);
-    padding: 18px;
+    padding: 20px;
     text-align: center;
     color: white;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
 }
 
 .modal-body {
-    padding: 20px 18px;
+    padding: 24px 20px;
     text-align: center;
-    font-size: 0.95rem;
+    font-size: 1rem;
     line-height: 1.5;
 }
 
 .ok-btn {
     width: 100%;
-    padding: 14px;
+    padding: 16px;
     background: var(--accent-color);
     color: white;
     border: none;
     font-weight: 700;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 1rem;
     transition: background-color 0.2s ease;
 }
 
-/* МЕДИА-ЗАПРОСЫ ДЛЯ КОМПАКТНОСТИ */
+.ok-btn:active {
+    opacity: 0.9;
+}
 
-/* Для телефонов (до 600px) */
-@media (max-width: 600px) {
+/* МЕДИА-ЗАПРОСЫ */
+
+/* Мобильные устройства */
+@media (max-width: 767px) {
     .container {
         max-height: 700px;
         padding: 50px 12px 20px;
-        gap: 12px;
+        gap: 16px;
     }
     
     .sudoku-platform {
@@ -434,13 +484,33 @@ body {
     .controls {
         max-width: 340px;
     }
+    
+    .number-btn,
+    .clear-cell-btn {
+        height: 50px;
+        font-size: 1.3rem;
+    }
+    
+    .clear-cell-btn {
+        font-size: 1.6rem;
+    }
+    
+    /* Показываем виртуальную клавиатуру только на мобилках */
+    .virtual-keyboard {
+        display: flex;
+    }
+    
+    /* Делаем инпуты readOnly чтобы не показывалась системная клавиатура */
+    .cell-input {
+        pointer-events: auto;
+    }
 }
 
-/* Для очень маленьких телефонов (до 400px) */
+/* Очень маленькие экраны */
 @media (max-width: 400px) {
     .container {
         padding: 45px 10px 15px;
-        gap: 10px;
+        gap: 14px;
     }
     
     .title {
@@ -470,25 +540,25 @@ body {
     
     .solve-btn,
     .clear-btn {
-        padding: 12px 0;
+        padding: 14px 0;
         font-size: 0.9rem;
-        min-height: 45px;
+        min-height: 50px;
     }
     
     .number-btn,
     .clear-cell-btn {
-        height: 45px;
+        height: 48px;
         font-size: 1.2rem;
     }
 }
 
-/* ДЛЯ ПК ВЕРСИИ - клавиатура скрыта */
+/* ПК версия */
 @media (min-width: 768px) {
     .container {
         max-width: 600px;
         max-height: 850px;
         padding: 70px 20px 40px;
-        gap: 20px;
+        gap: 24px;
     }
     
     .title {
@@ -524,7 +594,7 @@ body {
         border-bottom-width: 3px;
     }
     
-    /* ВИРТУАЛЬНАЯ КЛАВИАТУРА СКРЫТА НА ПК */
+    /* Виртуальная клавиатура скрыта на ПК */
     .virtual-keyboard {
         display: none !important;
     }
@@ -535,10 +605,10 @@ body {
     
     .solve-btn,
     .clear-btn {
-        padding: 16px 0;
+        padding: 18px 0;
         font-size: 1.1rem;
-        min-height: 55px;
-        border-radius: 14px;
+        min-height: 60px;
+        border-radius: 16px;
     }
     
     .signature {
@@ -546,34 +616,14 @@ body {
     }
 }
 
-/* Когда экран УЗКИЙ (мобилки и планшеты в портрете) */
-@media (max-width: 767px) {
-    /* Показываем виртуальную клавиатуру только при сильном сужении */
-    .virtual-keyboard {
-        display: flex;
-    }
-    
-    /* Делаем инпуты readOnly чтобы не показывалась родная клавиатура */
-    .cell-input {
-        caret-color: transparent;
-    }
-}
-
-/* Когда экран ОЧЕНЬ узкий (сильное сужение) */
-@media (max-width: 480px) {
-    .virtual-keyboard.show {
-        display: flex;
-    }
-}
-
-/* Горизонтальная ориентация на мобилках */
+/* Горизонтальная ориентация */
 @media (max-height: 500px) and (orientation: landscape) {
     .container {
         flex-direction: row;
         max-width: 100vw;
         max-height: 100vh;
         padding: 20px;
-        gap: 10px;
+        gap: 12px;
     }
     
     .header {
@@ -594,7 +644,7 @@ body {
     .game-area {
         flex: 1;
         max-width: 400px;
-        gap: 10px;
+        gap: 12px;
     }
     
     .sudoku-platform {
@@ -603,11 +653,6 @@ body {
     
     .sudoku-grid {
         max-height: 300px;
-    }
-    
-    .virtual-keyboard {
-        display: flex;
-        max-width: 350px;
     }
     
     .controls {
@@ -630,7 +675,7 @@ body {
     }
 }
 
-/* Для предотвращения скролла */
+/* Отключение выделения и предотвращение скролла */
 * {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -639,6 +684,5 @@ body {
 }
 
 html, body {
-    touch-action: manipulation;
     overscroll-behavior: none;
 }
