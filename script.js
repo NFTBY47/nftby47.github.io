@@ -20,7 +20,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTheme = localStorage.getItem('theme') || 'dark';
     let currentConflicts = new Map();
     let useServer = true;
-    let isMobile = window.innerWidth <= 767;
+    let isMobile = false;
+
+    // Функция определения устройства
+    function detectDeviceType() {
+        const width = window.innerWidth;
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isRealMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+        
+        // Это мобильное устройство если:
+        // 1. Ширина экрана <= 767 И (есть тач-экран ИЛИ это реальное мобильное устройство)
+        return (width <= 767) && (isTouchDevice || isRealMobile);
+    }
 
     // Проверка доступности сервера
     async function checkServerAvailability() {
@@ -94,28 +106,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             cell.appendChild(input);
             
-            // Обработчики событий - только один тип событий в зависимости от устройства
-            if (isMobile) {
-                cell.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    handleCellClick(cell);
-                }, { passive: false });
-            } else {
-                cell.addEventListener('click', () => handleCellClick(cell));
-                input.addEventListener('focus', () => handleCellClick(cell));
-            }
-            
+            // Обработчики для всех устройств
+            cell.addEventListener('click', () => handleCellClick(cell));
+            input.addEventListener('focus', () => handleCellClick(cell));
             input.addEventListener('input', (e) => handleCellInput(e.target));
-            
-            if (!isMobile) {
-                input.addEventListener('keydown', (e) => handleCellKeydown(e.target, e));
-            }
+            input.addEventListener('keydown', (e) => handleCellKeydown(e.target, e));
             
             grid.appendChild(cell);
         }
     }
 
-    // Обработчик клика по ячейке
+    // Обработчик клика по ячейке (ИСПРАВЛЕННАЯ ВЕРСИЯ)
     function handleCellClick(cell) {
         if (isSolving) return;
         
@@ -126,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cell.classList.add('active');
         activeCell = cell;
         
+        // На ПК всегда фокусируемся на input
         if (!isMobile) {
             const input = cell.querySelector('.cell-input');
             input.focus();
@@ -146,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => checkConflicts(), 50);
     }
 
-    // Обработчик нажатия клавиш (только для ПК)
+    // Обработчик нажатия клавиш
     function handleCellKeydown(input, e) {
         if (isSolving) return;
         
@@ -312,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Настройка виртуальной клавиатуры (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+    // Настройка виртуальной клавиатуры
     function setupVirtualKeyboard() {
         const buttons = virtualKeyboard.querySelectorAll('.number-btn, .clear-cell-btn');
         
@@ -321,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
             
-            // ГЛАВНОЕ ИСПРАВЛЕНИЕ: ВСЕГДА добавляем обработчик click
+            // Обработчик click для всех устройств
             newBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -336,12 +338,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 150);
             });
             
-            // Для мобильных устройств добавляем touch события для лучшей реакции
+            // Для мобильных устройств добавляем touch события
             if (isMobile) {
                 newBtn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Немедленная реакция на касание
                     handleVirtualKeyPress(newBtn);
                     newBtn.style.transform = 'scale(0.94)';
                     newBtn.style.opacity = '0.9';
@@ -360,19 +361,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     newBtn.style.opacity = '1';
                 }, { passive: false });
                 
-                // Предотвращаем контекстное меню
                 newBtn.addEventListener('contextmenu', (e) => e.preventDefault());
             }
         });
     }
 
-    // Обработчик нажатия на виртуальную клавиатуру (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+    // Обработчик нажатия на виртуальную клавиатуру
     function handleVirtualKeyPress(btn) {
         if (isSolving) return;
         
         const number = btn.dataset.number;
         
-        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Если нет активной ячейки, выбираем первую
         if (!activeCell) {
             const firstCell = grid.children[0];
             if (firstCell) {
@@ -392,46 +391,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 activeCell.classList.remove('solved', 'solved-animation');
             }
             
-            // Проверяем конфликты
             setTimeout(() => checkConflicts(), 50);
-            
-            // ⚠️ ВАЖНОЕ ИСПРАВЛЕНИЕ: УБРАЛИ АВТОМАТИЧЕСКИЙ ПЕРЕХОД К СЛЕДУЮЩЕЙ ЯЧЕЙКЕ
-            // Пользователь сам выбирает следующую ячейку кликом/тапом
-            // Код ниже был удален:
-            /*
-            if (number !== '0' && activeCell) {
-                const currentIndex = parseInt(activeCell.dataset.index);
-                if (currentIndex < 80) {
-                    setTimeout(() => {
-                        const nextCell = grid.children[currentIndex + 1];
-                        if (nextCell) {
-                            handleCellClick(nextCell);
-                        }
-                    }, 100);
-                }
-            }
-            */
         } else {
-            // Если всё ещё нет активной ячейки, показываем подсказку
             showModal('Сначала выберите ячейку тапом', 'Подсказка');
         }
     }
 
-    // Обновление видимости клавиатуры
+    // Обновление видимости клавиатуры (ИСПРАВЛЕННАЯ ВЕРСИЯ)
     function updateKeyboardVisibility() {
-        isMobile = window.innerWidth <= 767;
+        isMobile = detectDeviceType();
         
         if (isMobile) {
+            // Реальное мобильное устройство
             virtualKeyboard.classList.add('show');
-            // Делаем инпуты неактивными для системной клавиатуры
             document.querySelectorAll('.cell-input').forEach(input => {
-                input.readOnly = true;
-                input.inputMode = 'none';
+                input.readOnly = false;
+                input.inputMode = 'numeric';
             });
             
-            // Переинициализируем клавиатуру при изменении размера
             setTimeout(() => setupVirtualKeyboard(), 100);
         } else {
+            // ПК (даже с узким экраном)
             virtualKeyboard.classList.remove('show');
             document.querySelectorAll('.cell-input').forEach(input => {
                 input.readOnly = false;
@@ -574,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // Анимация решения (красивая как тополя)
+    // Анимация решения
     async function animateSolution(solution, source = 'javascript') {
         const originalBoard = getBoard();
         
@@ -585,7 +565,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const cell = grid.children[i];
                 const row = Math.floor(i / 9);
                 const col = i % 9;
-                // Вычисляем расстояние от центра для порядка анимации
                 const distanceFromCenter = Math.sqrt(
                     Math.pow(row - 4, 2) + Math.pow(col - 4, 2)
                 );
@@ -597,17 +576,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Сортируем по расстоянию от центра (ближе к центру -> дальше)
         cellsToSolve.sort((a, b) => a.distance - b.distance);
         
-        // Анимация заполнения
         for (let i = 0; i < cellsToSolve.length; i++) {
             if (!isSolving) break;
             
             const { cell, index } = cellsToSolve[i];
             const input = cell.querySelector('.cell-input');
             
-            // Задержка для красивого эффекта "волны"
             await new Promise(resolve => setTimeout(resolve, 35));
             
             input.value = solution[index];
@@ -645,7 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
         initTheme();
         updateKeyboardVisibility();
         
-        // Обработчики событий
         solveBtn.addEventListener('click', solveSudoku);
         clearBtn.addEventListener('click', clearGrid);
         themeToggle.addEventListener('click', toggleTheme);
